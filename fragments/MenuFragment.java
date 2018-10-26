@@ -26,7 +26,9 @@ public class MenuFragment extends Fragment {
     private BebidasFragment bebidasFragment;
     private ComidasFragment comidasFragment;
     private SugestaoFragment sugestaoFragment;
+
     private int frameId;
+    String teste;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -56,6 +58,7 @@ public class MenuFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 //carregar fragment comida
+
                 callFragment(frameId, comidasFragment);
             }
         });
@@ -69,6 +72,8 @@ public class MenuFragment extends Fragment {
             }
         });
 
+        //restaura o titulo do menu
+        getActivity().setTitle("Menu");
 
         return view;
 
@@ -76,18 +81,14 @@ public class MenuFragment extends Fragment {
     }
 
 
-    public void callFragment(int i, Fragment fragment){
+    public void callFragment(int i, Fragment fragment) {
 
         FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.replace(i,fragment);
+        FragmentTransaction transaction = fragmentManager.beginTransaction().addToBackStack(teste);
+        transaction.replace(i, fragment);
         transaction.commit();
 
     }
-
-
-
-
 
 
 }

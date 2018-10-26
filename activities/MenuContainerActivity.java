@@ -3,7 +3,6 @@ package br.com.emanoel.oliveira.container.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -11,7 +10,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ImageView;
 
 import br.com.emanoel.oliveira.container.R;
 import br.com.emanoel.oliveira.container.fragments.MenuFragment;
@@ -19,13 +17,10 @@ import br.com.emanoel.oliveira.container.fragments.MenuFragment;
 public class MenuContainerActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-//    //todo testando fragments
-//    private Button btCadastro, btListagem;
-//    private TextView tvCadastro, tvListagem;
+
         MenuFragment menuFragment;
-        ImageView ivBebida,ivComida,ivSugestao;
-//    ListagemFragment listagemFragment;
-//    //todo fim do teste
+        String teste;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,29 +62,52 @@ public class MenuContainerActivity extends BaseActivity
 
 
 
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.add(R.id.frMenuPrincipal,menuFragment);
-
-        transaction.commit();
+        addFragment2Frame(R.id.frMenuPrincipal,menuFragment);
 
 
     }
 
+
+
     @Override
     public void onBackPressed() {
+
+
         if(!userIsAdmin) {
             DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
             if (drawer.isDrawerOpen(GravityCompat.START)) {
                 drawer.closeDrawer(GravityCompat.START);
             } else {
-                super.onBackPressed();
+                int count = getSupportFragmentManager().getBackStackEntryCount();
+
+                if (count == 1) {
+                    super.onBackPressed();
+                    //additional code
+                   addFragment2Frame(R.id.frMenuPrincipal,menuFragment);
+
+                } else {
+                    getSupportFragmentManager().popBackStack();
+                }
+
+
             }
         }else {
             DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout_admin);
             if (drawer.isDrawerOpen(GravityCompat.START)) {
                 drawer.closeDrawer(GravityCompat.START);
             } else {
-                super.onBackPressed();
+                int count = getSupportFragmentManager().getBackStackEntryCount();
+
+                if (count == 1) {
+                    super.onBackPressed();
+                    //additional code
+
+                    addFragment2Frame(R.id.frMenuPrincipal,menuFragment);
+
+                } else {
+                    getSupportFragmentManager().popBackStack();
+                }
+
             }
 
         }
@@ -165,4 +183,6 @@ public class MenuContainerActivity extends BaseActivity
 
         }
     }
+
+
 }

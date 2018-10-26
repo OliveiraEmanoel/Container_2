@@ -53,7 +53,7 @@ public class CadastroFragment extends Fragment {
                     tipoCadastro = "pagamentos";
                     iniciaAtividade(tipoCadastro);
                 } else if (checkedId == R.id.rbCadastroProdutosMenu) {
-                    tipoCadastro = "menu";
+                    tipoCadastro = "produtos_menu";
                     iniciaAtividade(tipoCadastro);
                 } else if (checkedId == R.id.rbCadastroUsuariosAdm) {
                     tipoCadastro = "usuarios";

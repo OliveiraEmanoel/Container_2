@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import br.com.emanoel.oliveira.container.R;
 import br.com.emanoel.oliveira.container.fragments.ComprasFragment;
@@ -12,9 +12,10 @@ import br.com.emanoel.oliveira.container.fragments.GruposFragment;
 import br.com.emanoel.oliveira.container.fragments.MenuFragment;
 import br.com.emanoel.oliveira.container.fragments.MesasFragment;
 import br.com.emanoel.oliveira.container.fragments.PagamentosFragment;
+import br.com.emanoel.oliveira.container.fragments.ProdutosMenuFragment;
 import br.com.emanoel.oliveira.container.fragments.UsuariosFragment;
 
-public class TiposCadastrosActivity extends AppCompatActivity {
+public class TiposCadastrosActivity extends BaseActivity {
 
     private ComprasFragment comprasFragment;
     private GruposFragment gruposFragment;
@@ -22,6 +23,7 @@ public class TiposCadastrosActivity extends AppCompatActivity {
     private MesasFragment mesasFragment;
     private PagamentosFragment pagamentosFragment;
     private UsuariosFragment usuariosFragment;
+    private ProdutosMenuFragment produtosMenuFragment;
     private int frameId;
 
     @Override
@@ -41,6 +43,7 @@ public class TiposCadastrosActivity extends AppCompatActivity {
         mesasFragment = new MesasFragment();
         pagamentosFragment = new PagamentosFragment();
         usuariosFragment = new UsuariosFragment();
+        produtosMenuFragment = new ProdutosMenuFragment();
 
         frameId = R.id.frConteudoTiposCadastros;
 
@@ -48,8 +51,8 @@ public class TiposCadastrosActivity extends AppCompatActivity {
             callFragment(frameId,comprasFragment);
         } else if (tipoCadastro.equals("grupos")){
             callFragment(frameId,gruposFragment);
-        }else if (tipoCadastro.equals("menu")){
-            callFragment(frameId,menuFragment);
+        }else if (tipoCadastro.equals("produtos_menu")){
+            callFragment(frameId,produtosMenuFragment);
         }else if (tipoCadastro.equals("pagamentos")){
             callFragment(frameId,pagamentosFragment);
         }else if (tipoCadastro.equals("usuarios")){
@@ -63,9 +66,25 @@ public class TiposCadastrosActivity extends AppCompatActivity {
 
     public void callFragment(int i, Fragment fragment){
 
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction().addToBackStack(null);
         transaction.replace(i,fragment);
         transaction.commit();
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        int count = getSupportFragmentManager().getBackStackEntryCount();
+
+        Log.e("ON_BACK_PRESSED","COUNT=" + count);
+
+        if (count == 0) {
+            super.onBackPressed();
+            //additional code
+        } else {
+
+            getSupportFragmentManager().popBackStack();
+
+        }
     }
 }

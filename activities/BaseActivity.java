@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.VisibleForTesting;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
@@ -126,18 +128,28 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     public boolean isConnected() {
+        showProgressDialog();
         try {
             String command = "ping -c 1 firebase.google.com";
+            hideProgressDialog();
             return (Runtime.getRuntime().exec(command).waitFor() == 0);
 
 
         } catch (Exception e) {
             Log.e("BaseActivity", "Error checking internet connection", e);
+            hideProgressDialog();
             return false;
 
         }
     }
 
+    public void addFragment2Frame(int frame, Fragment fragment){
+
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction().addToBackStack(null);
+        transaction.add(frame,fragment);
+
+        transaction.commit();
+    }
 
     public String getRealPathFromURI(Context context, Uri contentUri) {
         Cursor cursor = null;

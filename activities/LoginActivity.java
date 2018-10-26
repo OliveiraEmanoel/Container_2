@@ -32,7 +32,7 @@ public class LoginActivity extends BaseActivity {
     String email;
     private String password;
     EditText etEmail;
-    private EditText etSenha;
+    EditText etSenha;
     TextView tvClick;
     private Button btEntrar;
 
@@ -96,6 +96,7 @@ public class LoginActivity extends BaseActivity {
 
             etEmail.setText(mAuth.getCurrentUser().getEmail());
             etEmail.setKeyListener(null);
+            etSenha.requestFocus();
 
            // tvClick.setText(R.string.esqueci_minha_senha_click_aqui);
 
@@ -178,61 +179,19 @@ public class LoginActivity extends BaseActivity {
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
         }
+        finish();
     }
 
-//    @Override
-//    public void onBackPressed() {
-//        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-//        if (drawer.isDrawerOpen(GravityCompat.START)) {
-//            drawer.closeDrawer(GravityCompat.START);
-//        } else {
-//            super.onBackPressed();
-//        }
-//    }
+
+    @Override
+    protected void onPause() {
+        finish();
+        super.onPause();
 
 
-//    private void cadastrar(String email, String password) {
-//        Log.d(TAG, "createUser:" + email);
-//
-//        if (!validateForm()) {
-//
-//            return;
-//
-//        }
-//
-//        showProgressDialog();
-//
-//        //Create account
-//
-//        try {
-//            mAuth.createUserWithEmailAndPassword(email, password)
-//                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-//                        @Override
-//                        public void onComplete(@NonNull Task<AuthResult> task) {
-//                            Log.d(TAG, "createUserWithEmail:onComplete:" + task.isSuccessful());
-//
-//
-//                            if (!task.isSuccessful()) {
-////                                Toast.makeText(LoginActivity.this, R.string.auth_failed + task.getException(),
-////                                        Toast.LENGTH_SHORT).show();
-//                                Log.d(TAG, "createUserWithEmail:onComplete:" + task.getException());
-//                            } else {
-//
-//                                Toast.makeText(LoginActivity.this, R.string.auth_success,
-//                                        Toast.LENGTH_SHORT).show();
-//
-//                                entrar();
-//
-//                            }
-//                            hideProgressDialog();
-//                            // ...
-//                        }
-//                    });
-//        } catch (Exception error) {
-//
-//            myToastCurto(error.toString());
-//        }
-//    }
+    }
+
+
 
     private void entrar() {
 
@@ -241,7 +200,7 @@ public class LoginActivity extends BaseActivity {
         Log.d(TAG, "signIn:" + email);
 
         if (!validateForm()) {
-
+            hideProgressDialog();
             return;
 
         }
@@ -286,7 +245,7 @@ public class LoginActivity extends BaseActivity {
         boolean valid = true;
 
 
-        String email = etEmail.getText().toString();
+        email = etEmail.getText().toString();
 
         if (TextUtils.isEmpty(email) || (!isEmailValid(email))) {
 
@@ -301,7 +260,7 @@ public class LoginActivity extends BaseActivity {
         }
 
 
-        String password = etSenha.getText().toString();
+        password = etSenha.getText().toString();
 
         if (TextUtils.isEmpty(password)) {
 
