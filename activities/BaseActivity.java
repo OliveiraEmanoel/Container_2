@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -12,13 +13,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.StorageReference;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+
+import br.com.emanoel.oliveira.container.models.AdmUsers;
 
 /**
  * Created by USUARIO on 25/09/2017.
@@ -31,7 +38,7 @@ public class BaseActivity extends AppCompatActivity {
     public SimpleDateFormat sdf;
     public GlobalUserID globalUserID;
     public FirebaseDatabase mFirebaseDatabase = FirebaseDatabase.getInstance();
-
+    public StorageReference myStorageRef;
     public String nome_banco_dados = "container_bar";
 
     public DatabaseReference myRef = mFirebaseDatabase.getReference(nome_banco_dados);
@@ -43,6 +50,7 @@ public class BaseActivity extends AppCompatActivity {
    // public static List<Produto_Tecido> cart;
     public static ArrayList<String> produtoKey = new ArrayList<>();
     public String userID;
+    public String userNome = " ";
 
     public static int nroItensCart;//vou usar como indice do array
     public static double totalCart;
@@ -69,17 +77,29 @@ public class BaseActivity extends AppCompatActivity {
 
         userIsAdmin = false;
 
-        //todo buscar essa informação no banco de dados
+        myRef.child("usuarios_admin").orderByChild("emailAdmUser").equalTo(user).addListenerForSingleValueEvent(new ValueEventListener() {
 
-        Log.d("BaseActivity","user = "+user);
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                    AdmUsers users = userSnapshot.getValue(AdmUsers.class);
 
-        if (user.equals("emanoel_oliveira@hotmail.com") || user.equals("emanoel@alfatektechnologia.com.br")) {
-            userIsAdmin = true;
-            return true;
-        } else {
+                    if (users.getActive()) {
+                        Log.e("LOGIN_IS_USER_ADMIN", "onDataChange: " + users.getNomeAdmUser());
+                        userIsAdmin = true;
+                        userNome = users.getNomeAdmUser();
+                    }
+                }
 
-            return userIsAdmin;
-        }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+        return userIsAdmin;
 
     }
 

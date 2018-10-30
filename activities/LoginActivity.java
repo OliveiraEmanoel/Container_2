@@ -95,6 +95,7 @@ public class LoginActivity extends BaseActivity {
             userID = globalUserID.getUsuarioId();
 
             etEmail.setText(mAuth.getCurrentUser().getEmail());
+            userEmail = etEmail.toString();
             etEmail.setKeyListener(null);
             etSenha.requestFocus();
 

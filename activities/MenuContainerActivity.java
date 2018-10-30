@@ -167,6 +167,8 @@ public class MenuContainerActivity extends BaseActivity
 
         } else if (id == R.id.nav_manage) {
 
+            System.exit(0);
+
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {
