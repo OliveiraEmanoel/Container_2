@@ -66,9 +66,11 @@ public class EstoqueFragment extends Fragment {
 
         //setting data to edittext
         etUser.setText(baseActivity.userNome);
+        etUser.setKeyListener(null);
         userEstoque = etUser.getText().toString();
         etData.setText(String.valueOf(Calendar.getInstance().getTime()));
         etData.setKeyListener(null);//desabilita a edição
+        etTotal.setKeyListener(null);
 
         //sorting string-array
         String[] produtos = getResources().getStringArray(R.array.produtos_estoque);
@@ -147,7 +149,7 @@ public class EstoqueFragment extends Fragment {
             }
         });
 
-        //todo setup views, validate data, save data to firebase
+        etTotal.setText(qdadeEstoque);
 
         return v;
     }
@@ -156,7 +158,8 @@ public class EstoqueFragment extends Fragment {
                              int tot, String usuario, boolean isActive) {
 
         Estoque estoque = new Estoque(nome, qdade, tipoMedida, dataIn,tot, usuario,isActive);
-        baseActivity.myRef.child("produtos").push().setValue(estoque);
+        baseActivity.myRef.child("estoque").push().setValue(estoque);
+        etQdade.setText(" ");
     }
 
     public void checkItemCount() {

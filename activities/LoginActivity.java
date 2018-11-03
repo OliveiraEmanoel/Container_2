@@ -2,6 +2,7 @@ package br.com.emanoel.oliveira.container.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Process;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
@@ -19,8 +20,12 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 
 import br.com.emanoel.oliveira.container.R;
+import br.com.emanoel.oliveira.container.models.AdmUsers;
 
 
 public class LoginActivity extends BaseActivity {
@@ -46,10 +51,9 @@ public class LoginActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-
         if (!isConnected()) {
             try {
-                Snackbar.make(coordinatorLayout,"Verifique sua conexão de Internet!!",Snackbar.LENGTH_LONG)
+                Snackbar.make(coordinatorLayout, "Verifique sua conexão de Internet!!", Snackbar.LENGTH_LONG)
                         .setAction("Sair", new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -57,16 +61,64 @@ public class LoginActivity extends BaseActivity {
                             }
                         })
                         .show();
-            }catch (Exception e){
+            } catch (Exception e) {
 
-                myToastlongo("Verifique seu sinal de internet " );
+                myToastlongo("Verifique seu sinal de internet ");
                 finish();
 
             }
 
+        }
 
+        //setting up firebese auth
+        try {
+            mAuth = FirebaseAuth.getInstance();
+        } catch (Exception error) {
+            Log.e(TAG, "Setting instance: " + error);
 
         }
+
+
+
+        //trying to run background task
+        Thread readDataFromFirebase = new Thread() {//creating thread
+
+            public void run() {//run method of thread--here we set priority and all tasks we want that run in background
+
+                //setting priority
+                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                //trying to check if user is admin and get this answer before isadmin method
+                myRef.child("usuarios_admin").orderByChild("emailAdmUser").equalTo(mAuth.getCurrentUser().getEmail()).addListenerForSingleValueEvent(new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                            AdmUsers users = userSnapshot.getValue(AdmUsers.class);
+
+                            if (users.getActive()) {
+
+                                userIsAdmin = true;
+                                userNome = users.getNomeAdmUser();
+                                Log.e("LOGIN_IS_USER_ADMIN", "onDataChange: " + users.getNomeAdmUser() + " " + userIsAdmin);
+                            }
+                        }
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+
+                });
+
+
+            }
+
+
+        };
+        //readDataFromFirebase.setDaemon(true);
+        readDataFromFirebase.start();
 
         //setting buttons
 
@@ -78,15 +130,7 @@ public class LoginActivity extends BaseActivity {
         tvClick = findViewById(R.id.tvLoginEsqueciSenha);
 
 
-        //setting up firebese auth
-        try {
-            mAuth = FirebaseAuth.getInstance();
-        } catch (Exception error) {
-            Log.e(TAG, "Setting instance: " + error);
-
-        }
         globalUserID = (GlobalUserID) getApplication(); //getApplicationContext();
-
 
         //checking if user exists
         if (mAuth.getCurrentUser() != null) {
@@ -95,17 +139,21 @@ public class LoginActivity extends BaseActivity {
             userID = globalUserID.getUsuarioId();
 
             etEmail.setText(mAuth.getCurrentUser().getEmail());
-            userEmail = etEmail.toString();
+            userLogado = mAuth.getCurrentUser().getEmail();
             etEmail.setKeyListener(null);
             etSenha.requestFocus();
 
-           // tvClick.setText(R.string.esqueci_minha_senha_click_aqui);
 
 
-        }else {
+        } else {
             //se usuario não existe, cadastrar
-            startActivity(new Intent(getApplicationContext(),CadastroUsuarioActivity.class));
+            startActivity(new Intent(getApplicationContext(), CadastroUsuarioActivity.class));
         }
+
+
+
+
+
 
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {
@@ -144,7 +192,7 @@ public class LoginActivity extends BaseActivity {
             @Override
             public void onClick(View view) {
 
-            entrar();
+                entrar();
 
             }
         });
@@ -153,7 +201,7 @@ public class LoginActivity extends BaseActivity {
         etSenha.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if(actionId == 6){
+                if (actionId == 6) {
 
                     entrar();
                 }
@@ -165,6 +213,8 @@ public class LoginActivity extends BaseActivity {
 
     }
 
+
+
     @Override
     public void onStart() {
         super.onStart();
@@ -172,6 +222,8 @@ public class LoginActivity extends BaseActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
     }
+
+
 
 
     @Override
@@ -191,7 +243,6 @@ public class LoginActivity extends BaseActivity {
 
 
     }
-
 
 
     private void entrar() {
@@ -225,7 +276,7 @@ public class LoginActivity extends BaseActivity {
                             } else {
                                 //habilitar administração/cadastro?
                                 isUserAdmin(mAuth.getCurrentUser().getEmail());
-                                Log.d(TAG,"user is admin= " + userIsAdmin + " " + mAuth.getCurrentUser().getEmail());
+                                Log.d(TAG, "user is admin= " + userIsAdmin + " " + mAuth.getCurrentUser().getEmail());
                                 startActivity(new Intent(LoginActivity.this, MenuContainerActivity.class));
                                 finish();
                             }
@@ -234,9 +285,9 @@ public class LoginActivity extends BaseActivity {
                             // ...
                         }
                     });
-        }catch (Exception e){
+        } catch (Exception e) {
 
-            myToastCurto("Erro de login" + TAG );
+            myToastCurto("Erro de login" + TAG);
         }
     }
 

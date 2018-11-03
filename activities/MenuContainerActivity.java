@@ -25,6 +25,8 @@ public class MenuContainerActivity extends BaseActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         //checando se usuario é administrativo, e mudando o menu
         if(!userIsAdmin) {
             setContentView(R.layout.activity_menu_container);
@@ -186,5 +188,9 @@ public class MenuContainerActivity extends BaseActivity
         }
     }
 
-
+    @Override
+    protected void onStart() {
+        Log.e("MENU_ON_START", "onStart: " + userIsAdmin );
+        super.onStart();
+    }
 }

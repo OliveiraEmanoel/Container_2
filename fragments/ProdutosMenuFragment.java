@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -43,20 +44,12 @@ public class ProdutosMenuFragment extends Fragment {
 
 
     ImageView ivFotoProduto;
-
     Button btBrowse;
-
     EditText etNome;
-
     EditText etValor;
-
     EditText etDetalhes;
-
-    Button btLimparDescription;
-
+    RadioGroup radioGroup;
     Button btSalvarProduto;
-
-
     BaseActivity baseActivity;
     private long itemCount;
     private String imageURI, imageFileName;
@@ -81,7 +74,8 @@ public class ProdutosMenuFragment extends Fragment {
         etDetalhes = v.findViewById(R.id.etDetalhes);
         etNome = v.findViewById(R.id.etNome);
         etValor = v.findViewById(R.id.etValor);
-        btLimparDescription = v.findViewById(R.id.btLimparDescription);
+        radioGroup = v.findViewById(R.id.rgTipoProdutoMenu);
+
         btSalvarProduto = v.findViewById(R.id.btSalvarProduto);
 
         btBrowse.setOnClickListener(new View.OnClickListener() {
@@ -94,21 +88,27 @@ public class ProdutosMenuFragment extends Fragment {
             }
         });
 
-        btLimparDescription.setOnClickListener(new View.OnClickListener() {
+        radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
-            public void onClick(View v) {
-                etDetalhes.setText("");
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                if (checkedId == R.id.rbBebidasMenu){
+                    tipo = "bebidas";
+                }else if(checkedId == R.id.rbComidasMenu){
+                    tipo = "comidas";
+                }else if(checkedId == R.id.rbSugestaoMenu){
+                    tipo = "sugestao";
+                }
             }
         });
 
         btSalvarProduto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                baseActivity.showProgressDialog();
+               // baseActivity.showProgressDialog();
                 validate();
 
                 if (!validate()) {
-                    baseActivity.hideProgressDialog();
+                   // baseActivity.hideProgressDialog();
                     return;
                 }
 
@@ -140,6 +140,15 @@ public class ProdutosMenuFragment extends Fragment {
 
         Produtos produtos = new Produtos(nome, price, description, photoUrl, dataIn, codigo, isActive, tipo);
         baseActivity.myRef.child("produtos").push().setValue(produtos);
+        limparViews();
+    }
+
+    private void limparViews() {
+
+        etValor.setText("");
+        etNome.setText("");
+        etDetalhes.setText("");
+        ivFotoProduto.setImageResource(R.drawable.logo_container_original);
     }
 
     private boolean validate() {
@@ -247,8 +256,8 @@ public class ProdutosMenuFragment extends Fragment {
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                             // Get a URL to the uploaded content
                             Uri downloadUrl = taskSnapshot.getUploadSessionUri();//todo metodo mudou aqui... ver se funciona
-
-                            photoUrl = downloadUrl.toString();
+                            photoUrl = baseActivity.myStorageRef.getDownloadUrl().toString();
+                           // photoUrl = downloadUrl.toString();
 
                         }
                     })

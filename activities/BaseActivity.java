@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -13,17 +12,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.StorageReference;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import br.com.emanoel.oliveira.container.models.AdmUsers;
 
@@ -50,7 +47,9 @@ public class BaseActivity extends AppCompatActivity {
    // public static List<Produto_Tecido> cart;
     public static ArrayList<String> produtoKey = new ArrayList<>();
     public String userID;
-    public String userNome = " ";
+    public static String userNome;
+    public static String userLogado;
+    List<AdmUsers> admUsersList;
 
     public static int nroItensCart;//vou usar como indice do array
     public static double totalCart;
@@ -75,32 +74,8 @@ public class BaseActivity extends AppCompatActivity {
 
     public Boolean isUserAdmin(String user) {
 
-        userIsAdmin = false;
-
-        myRef.child("usuarios_admin").orderByChild("emailAdmUser").equalTo(user).addListenerForSingleValueEvent(new ValueEventListener() {
-
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
-                    AdmUsers users = userSnapshot.getValue(AdmUsers.class);
-
-                    if (users.getActive()) {
-                        Log.e("LOGIN_IS_USER_ADMIN", "onDataChange: " + users.getNomeAdmUser());
-                        userIsAdmin = true;
-                        userNome = users.getNomeAdmUser();
-                    }
-                }
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-
+        Log.e("BASE_ACTIVITY", "isUserAdmin: " + userIsAdmin );
         return userIsAdmin;
-
     }
 
     @VisibleForTesting
