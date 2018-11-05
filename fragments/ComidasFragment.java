@@ -79,7 +79,8 @@ public class ComidasFragment extends Fragment {
        produtosArrayList.clear();//clear previous data
 
         // Read from the database
-        baseActivity.myRef.child("produtos").orderByChild("tipo").equalTo("comidas").addValueEventListener(new ValueEventListener() {
+        baseActivity.myRef.child("produtos").orderByChild("tipo").equalTo("comidas")
+                .addValueEventListener(new ValueEventListener() {
 
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {

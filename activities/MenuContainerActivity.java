@@ -20,6 +20,7 @@ public class MenuContainerActivity extends BaseActivity
 
         MenuFragment menuFragment;
         String teste;
+        String TAG = "MenuContainerActivity";
 
 
     @Override
@@ -192,5 +193,11 @@ public class MenuContainerActivity extends BaseActivity
     protected void onStart() {
         Log.e("MENU_ON_START", "onStart: " + userIsAdmin );
         super.onStart();
+
     }
+
+    @Override
+    public void onStop() {
+        super.onStop();}
+
 }

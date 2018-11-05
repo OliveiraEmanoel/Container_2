@@ -2,6 +2,7 @@ package br.com.emanoel.oliveira.container.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Process;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
@@ -31,8 +32,8 @@ import br.com.emanoel.oliveira.container.models.AdmUsers;
 public class LoginActivity extends BaseActivity {
 
 
-    FirebaseAuth mAuth;
-    FirebaseAuth.AuthStateListener mAuthListener;
+//    FirebaseAuth mAuth;
+//    FirebaseAuth.AuthStateListener mAuthListener;
     private String TAG = "AUTH_FIREBASE";
     String email;
     private String password;
@@ -96,9 +97,17 @@ public class LoginActivity extends BaseActivity {
                             AdmUsers users = userSnapshot.getValue(AdmUsers.class);
 
                             if (users.getActive()) {
+                                Handler handler = new Handler();
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        userIsAdmin = true;
 
-                                userIsAdmin = true;
+
+                                    }
+                                },5000);
                                 userNome = users.getNomeAdmUser();
+
                                 Log.e("LOGIN_IS_USER_ADMIN", "onDataChange: " + users.getNomeAdmUser() + " " + userIsAdmin);
                             }
                         }
@@ -238,8 +247,9 @@ public class LoginActivity extends BaseActivity {
 
     @Override
     protected void onPause() {
-        finish();
+
         super.onPause();
+        finish();
 
 
     }

@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.StorageReference;
@@ -37,6 +38,8 @@ public class BaseActivity extends AppCompatActivity {
     public FirebaseDatabase mFirebaseDatabase = FirebaseDatabase.getInstance();
     public StorageReference myStorageRef;
     public String nome_banco_dados = "container_bar";
+    FirebaseAuth mAuth;
+    FirebaseAuth.AuthStateListener mAuthListener;
 
     public DatabaseReference myRef = mFirebaseDatabase.getReference(nome_banco_dados);
     android.support.v7.app.ActionBar actionBar;

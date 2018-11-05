@@ -20,8 +20,9 @@ import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
@@ -42,7 +43,6 @@ import br.com.emanoel.oliveira.container.models.Produtos;
 public class ProdutosMenuFragment extends Fragment {
 
 
-
     ImageView ivFotoProduto;
     Button btBrowse;
     EditText etNome;
@@ -52,10 +52,12 @@ public class ProdutosMenuFragment extends Fragment {
     Button btSalvarProduto;
     BaseActivity baseActivity;
     private long itemCount;
-    private String imageURI, imageFileName;
+    private String imageURI, imageFileName, imageName, downloadUrl;
     private String codigoRef, tipo;
     private String photoUrl, description, dataEntrada;
     private boolean isActive = true;
+    private String TAG = "ProdutosMenuFragment: ";
+    Uri file;
 
     public ProdutosMenuFragment() {
         // Required empty public constructor
@@ -78,6 +80,8 @@ public class ProdutosMenuFragment extends Fragment {
 
         btSalvarProduto = v.findViewById(R.id.btSalvarProduto);
 
+        baseActivity.myStorageRef = FirebaseStorage.getInstance().getReference("container/produtos");
+
         btBrowse.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -85,17 +89,19 @@ public class ProdutosMenuFragment extends Fragment {
                 Log.d("CHECK_ITEM_COUNT", "onDataChange: " + itemCount);
                 Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 startActivityForResult(intent, 0);
+
             }
         });
+
 
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                if (checkedId == R.id.rbBebidasMenu){
+                if (checkedId == R.id.rbBebidasMenu) {
                     tipo = "bebidas";
-                }else if(checkedId == R.id.rbComidasMenu){
+                } else if (checkedId == R.id.rbComidasMenu) {
                     tipo = "comidas";
-                }else if(checkedId == R.id.rbSugestaoMenu){
+                } else if (checkedId == R.id.rbSugestaoMenu) {
                     tipo = "sugestao";
                 }
             }
@@ -104,15 +110,16 @@ public class ProdutosMenuFragment extends Fragment {
         btSalvarProduto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               // baseActivity.showProgressDialog();
+                // baseActivity.showProgressDialog();
                 validate();
 
                 if (!validate()) {
-                   // baseActivity.hideProgressDialog();
+                    // baseActivity.hideProgressDialog();
                     return;
                 }
 
                 checkItemCount();
+
 
                 codigoRef = "Produto-" + (itemCount + 1);
 
@@ -199,9 +206,12 @@ public class ProdutosMenuFragment extends Fragment {
 
             imageURI = baseActivity.getRealPathFromURI(getContext(), targetUri);
             imageFileName = baseActivity.getRealTitleFromURI(getContext(), targetUri);
+            imageName = imageFileName.toLowerCase();
+
+
+            file = Uri.fromFile(new File(imageURI));
 
             salvarFotoOnCloud();
-
 
             //Toast.makeText(this,imageURI,Toast.LENGTH_LONG).show();
             Log.d("Cadastro", imageFileName);
@@ -242,39 +252,110 @@ public class ProdutosMenuFragment extends Fragment {
 
     public void salvarFotoOnCloud() {
 
-        //baseActivity.showProgressDialog();
 
+        final UploadTask uploadTask = baseActivity.myStorageRef.child(imageName).putFile(file);
         try {
 
-            baseActivity.myStorageRef = FirebaseStorage.getInstance().getReference("container/produtos");
-            Uri file = Uri.fromFile(new File(imageURI));
+            uploadTask.addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                    if (task.isSuccessful()){
+
+                        Log.e(TAG, "onComplete: " + "SUCESSO NA GRAVAÇÃO NA NUVEM");
 
 
-            baseActivity.myStorageRef.child(imageFileName.toLowerCase()).putFile(file)
-                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+//                                .addOnCompleteListener(new OnCompleteListener<Uri>() {
+//                            @Override
+//                            public void onComplete(@NonNull Task<Uri> task) {
+//                               if (baseActivity.myStorageRef.getDownloadUrl().isComplete()) {
+//
+//                                   photoUrl = baseActivity.myStorageRef.getDownloadUrl().toString();
+//                               } else {
+//                                   task.getException();
+////                                  }
+
+
+                                //.addOnSuccessListener(new OnSuccessListener<Uri>() {
+//                            @Override
+//                            public void onSuccess(Uri uri) {
+//                                if(uri != null){
+//
+//                                    photoUrl = uri.toString();
+//                                }
+//                            }
+
+
+                    } else {
+
+                        Log.e(TAG, "onComplete: " + " Erro uploading file" );
+                    }
+                }
+            });
+
+            uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri >>() {
+                @Override
+                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task)
+                        throws Exception {
+                    baseActivity.myStorageRef.child(imageName).getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
                         @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            // Get a URL to the uploaded content
-                            Uri downloadUrl = taskSnapshot.getUploadSessionUri();//todo metodo mudou aqui... ver se funciona
-                            photoUrl = baseActivity.myStorageRef.getDownloadUrl().toString();
-                           // photoUrl = downloadUrl.toString();
-
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception exception) {
-                            // Handle unsuccessful uploads
-                            // ...
-                            Toast.makeText(getActivity(), "Erro salvando foto! " + exception.toString(), Toast.LENGTH_SHORT).show();
+                        public void onComplete(@NonNull Task<Uri> task) {
+                            if(task.isSuccessful()){
+                               photoUrl = task.getResult().toString();
+                            }
+                            Log.e(TAG, "onComplete: " + task.getException());
                         }
                     });
-           // baseActivity.hideProgressDialog();
+                    return baseActivity.myStorageRef.child(imageName).getDownloadUrl();
+                }
+            });
 
-        } catch (Exception error) {
+        } catch (Exception e) {
+            Log.e(TAG, "salvarFotoOnCloud: " + e.toString() );
 
-            Log.e("salvarFotoOnCloud", "Erro salvando foto: " + error);
         }
-    }
 
+//            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+//                @Override
+//                public void onComplete(@NonNull Task<Uri> task) {
+//                    if (task.isSuccessful()) {
+//                        Uri downloadUri = task.getResult();
+//                        System.out.println("Upload " + downloadUri);
+//                        //Toast.makeText(this, "Successfully uploaded", Toast.LENGTH_SHORT).show();
+//                        if (downloadUri != null) {
+//
+//                            photoUrl = task.getResult().toString();
+//                            Log.e(TAG, "onSuccess: " + photoUrl);
+//
+//                            String photoStringLink = downloadUri.toString(); //YOU WILL GET THE DOWNLOAD URL HERE !!!!
+//                            //System.out.println("Upload " + photoStringLink);
+//
+//                        }
+//
+//                    } else {
+//                        // Handle failures
+//                        // ...
+//                    }
+//                }
+//            });
+
+//            baseActivity.myStorageRef.child(imageFileName.toLowerCase()).putFile(file)
+//        uploadTask
+//                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>()
+//
+//                {
+//                    @Override
+//                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+//                        Uri uri = taskSnapshot.getUploadSessionUri();
+//                        baseActivity.myStorageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+//                            @Override
+//                            public void onSuccess(Uri uri) {
+//                                photoUrl = uri.toString();
+//                                Log.e(TAG, "onSuccess: " + photoUrl);
+//                            }
+//                        });
+//
+//                    }
+//                });
+
+    }
 }
