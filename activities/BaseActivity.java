@@ -36,12 +36,14 @@ public class BaseActivity extends AppCompatActivity {
     public SimpleDateFormat sdf;
     public GlobalUserID globalUserID;
     public FirebaseDatabase mFirebaseDatabase = FirebaseDatabase.getInstance();
+
     public StorageReference myStorageRef;
     public String nome_banco_dados = "container_bar";
     FirebaseAuth mAuth;
     FirebaseAuth.AuthStateListener mAuthListener;
 
     public DatabaseReference myRef = mFirebaseDatabase.getReference(nome_banco_dados);
+
     android.support.v7.app.ActionBar actionBar;
     public DecimalFormat value = new DecimalFormat("0.00");
     public DecimalFormat f = new DecimalFormat("R$ 0.00");
@@ -184,7 +186,6 @@ public class BaseActivity extends AppCompatActivity {
     }
 
 
-
     public void myToastCurto(String mensagem) {
 
         Toast.makeText(getApplicationContext(), mensagem, Toast.LENGTH_SHORT).show();
@@ -196,6 +197,43 @@ public class BaseActivity extends AppCompatActivity {
         Toast.makeText(getApplicationContext(), mensagem, Toast.LENGTH_LONG).show();
 
     }
+
+//    public boolean findItemTotal(String itemEstoque) {
+//
+//        //todo acessar bd, ordenar por itemNome, somar total , atualizar esse item ao salvar
+//        //todo mostrar tvTotal
+//
+//
+//        // Read from the database
+//        myRef.child("estoque").orderByChild(itemEstoque).addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                // This method is called once with the initial value and again
+//                // whenever data at this location is updated.
+//                if(dataSnapshot.getChildrenCount()!=0){
+//                    Estoque estoque = dataSnapshot.getValue(Estoque.class);
+//                    itemExist = true;
+//                   String itemKey = dataSnapshot.getKey();
+//                   int  total = estoque.getTotalItemEstoque();
+//
+//
+//                } else {
+//                    itemExist = false;//todo atualizar não/key não existe
+//                }
+////                String value = dataSnapshot.getValue(String.class);
+////                Log.d(TAG, "Value is: " + value);
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError error) {
+//                // Failed to read value
+//                Log.w(TAG, "Failed to read value.", error.toException());
+//            }
+//        });
+//
+//        return itemExist;
+//
+//    }
 
 
 }

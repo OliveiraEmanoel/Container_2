@@ -114,6 +114,8 @@ public class CadastroUsuarioActivity extends BaseActivity {
 
         //Create account
 
+        //todo check if user exist?
+
         try {
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {

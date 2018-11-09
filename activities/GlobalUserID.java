@@ -3,6 +3,10 @@ package br.com.emanoel.oliveira.container.activities;
 import android.app.Application;
 import android.view.View;
 
+import com.google.firebase.database.FirebaseDatabase;
+import com.squareup.picasso.LruCache;
+import com.squareup.picasso.Picasso;
+
 /**
  * Created by USUARIO on 10/09/2017.
  */
@@ -186,6 +190,14 @@ public class GlobalUserID extends Application {
 
         public void onItemClicked(View v, int position);
     }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+
+    }
+
 
 
 

@@ -3,7 +3,6 @@ package br.com.emanoel.oliveira.container.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Process;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
@@ -18,11 +17,13 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import br.com.emanoel.oliveira.container.R;
@@ -32,8 +33,6 @@ import br.com.emanoel.oliveira.container.models.AdmUsers;
 public class LoginActivity extends BaseActivity {
 
 
-//    FirebaseAuth mAuth;
-//    FirebaseAuth.AuthStateListener mAuthListener;
     private String TAG = "AUTH_FIREBASE";
     String email;
     private String password;
@@ -41,6 +40,7 @@ public class LoginActivity extends BaseActivity {
     EditText etSenha;
     TextView tvClick;
     private Button btEntrar;
+    private FirebaseAnalytics mFirebaseAnalytics;
 
     GlobalUserID globalUserID;
 
@@ -51,7 +51,11 @@ public class LoginActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
+        try {
+            mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+        } catch (Exception e) {
+            Log.e(TAG, "onCreate: " + e.toString());
+        }
         if (!isConnected()) {
             try {
                 Snackbar.make(coordinatorLayout, "Verifique sua conexão de Internet!!", Snackbar.LENGTH_LONG)
@@ -79,55 +83,86 @@ public class LoginActivity extends BaseActivity {
 
         }
 
+        //trying to check if user is admin and get this answer before isadmin method
+        Query task = myRef.child("usuarios_admin").orderByChild("emailAdmUser").equalTo(mAuth.getCurrentUser().getEmail());
 
+        task.addListenerForSingleValueEvent(new ValueEventListener() {
 
-        //trying to run background task
-        Thread readDataFromFirebase = new Thread() {//creating thread
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                    AdmUsers users = userSnapshot.getValue(AdmUsers.class);
 
-            public void run() {//run method of thread--here we set priority and all tasks we want that run in background
+                    if (users.getActive()) {
 
-                //setting priority
-                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-                //trying to check if user is admin and get this answer before isadmin method
-                myRef.child("usuarios_admin").orderByChild("emailAdmUser").equalTo(mAuth.getCurrentUser().getEmail()).addListenerForSingleValueEvent(new ValueEventListener() {
+                        Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                userIsAdmin = true;
 
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
-                            AdmUsers users = userSnapshot.getValue(AdmUsers.class);
-
-                            if (users.getActive()) {
-                                Handler handler = new Handler();
-                                handler.postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        userIsAdmin = true;
-
-
-                                    }
-                                },5000);
-                                userNome = users.getNomeAdmUser();
-
-                                Log.e("LOGIN_IS_USER_ADMIN", "onDataChange: " + users.getNomeAdmUser() + " " + userIsAdmin);
                             }
-                        }
+                        }, 2000);
+                        userNome = users.getNomeAdmUser();
 
+                        Log.e("LOGIN_IS_USER_ADMIN", "onDataChange: " + users.getNomeAdmUser() + " " + userIsAdmin);
                     }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-
-                });
-
+                }
 
             }
 
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
 
-        };
+            }
+
+        });
+
+
+//        Thread readDataFromFirebase = new Thread() {//creating thread
+//
+//            public void run() {//run method of thread--here we set priority and all tasks we want that run in background
+//
+//                //setting priority
+//                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+//                //trying to check if user is admin and get this answer before isadmin method
+//                myRef.child("usuarios_admin").orderByChild("emailAdmUser").equalTo(mAuth.getCurrentUser().getEmail()).addListenerForSingleValueEvent(new ValueEventListener() {
+//
+//                    @Override
+//                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                        for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+//                            AdmUsers users = userSnapshot.getValue(AdmUsers.class);
+//
+//                            if (users.getActive()) {
+//                                Handler handler = new Handler();
+//                                handler.postDelayed(new Runnable() {
+//                                    @Override
+//                                    public void run() {
+//                                        userIsAdmin = true;
+//
+//                                    }
+//                                }, 2000);
+//                                userNome = users.getNomeAdmUser();
+//
+//                                Log.e("LOGIN_IS_USER_ADMIN", "onDataChange: " + users.getNomeAdmUser() + " " + userIsAdmin);
+//                            }
+//                        }
+//
+//                    }
+//
+//                    @Override
+//                    public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//                    }
+//
+//                });
+//
+//            }
+//
+//
+//        };
         //readDataFromFirebase.setDaemon(true);
-        readDataFromFirebase.start();
+        // readDataFromFirebase.start();
 
         //setting buttons
 
@@ -151,19 +186,10 @@ public class LoginActivity extends BaseActivity {
             userLogado = mAuth.getCurrentUser().getEmail();
             etEmail.setKeyListener(null);
             etSenha.requestFocus();
-
-
-
         } else {
             //se usuario não existe, cadastrar
             startActivity(new Intent(getApplicationContext(), CadastroUsuarioActivity.class));
         }
-
-
-
-
-
-
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -222,8 +248,6 @@ public class LoginActivity extends BaseActivity {
 
     }
 
-
-
     @Override
     public void onStart() {
         super.onStart();
@@ -231,9 +255,6 @@ public class LoginActivity extends BaseActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
     }
-
-
-
 
     @Override
     public void onStop() {

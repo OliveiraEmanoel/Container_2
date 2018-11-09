@@ -23,6 +23,7 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
@@ -58,6 +59,7 @@ public class ProdutosMenuFragment extends Fragment {
     private boolean isActive = true;
     private String TAG = "ProdutosMenuFragment: ";
     Uri file;
+    private FirebaseAnalytics mFirebaseAnalytics;
 
     public ProdutosMenuFragment() {
         // Required empty public constructor
@@ -263,28 +265,6 @@ public class ProdutosMenuFragment extends Fragment {
 
                         Log.e(TAG, "onComplete: " + "SUCESSO NA GRAVAÇÃO NA NUVEM");
 
-
-//                                .addOnCompleteListener(new OnCompleteListener<Uri>() {
-//                            @Override
-//                            public void onComplete(@NonNull Task<Uri> task) {
-//                               if (baseActivity.myStorageRef.getDownloadUrl().isComplete()) {
-//
-//                                   photoUrl = baseActivity.myStorageRef.getDownloadUrl().toString();
-//                               } else {
-//                                   task.getException();
-////                                  }
-
-
-                                //.addOnSuccessListener(new OnSuccessListener<Uri>() {
-//                            @Override
-//                            public void onSuccess(Uri uri) {
-//                                if(uri != null){
-//
-//                                    photoUrl = uri.toString();
-//                                }
-//                            }
-
-
                     } else {
 
                         Log.e(TAG, "onComplete: " + " Erro uploading file" );
@@ -313,49 +293,6 @@ public class ProdutosMenuFragment extends Fragment {
             Log.e(TAG, "salvarFotoOnCloud: " + e.toString() );
 
         }
-
-//            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
-//                @Override
-//                public void onComplete(@NonNull Task<Uri> task) {
-//                    if (task.isSuccessful()) {
-//                        Uri downloadUri = task.getResult();
-//                        System.out.println("Upload " + downloadUri);
-//                        //Toast.makeText(this, "Successfully uploaded", Toast.LENGTH_SHORT).show();
-//                        if (downloadUri != null) {
-//
-//                            photoUrl = task.getResult().toString();
-//                            Log.e(TAG, "onSuccess: " + photoUrl);
-//
-//                            String photoStringLink = downloadUri.toString(); //YOU WILL GET THE DOWNLOAD URL HERE !!!!
-//                            //System.out.println("Upload " + photoStringLink);
-//
-//                        }
-//
-//                    } else {
-//                        // Handle failures
-//                        // ...
-//                    }
-//                }
-//            });
-
-//            baseActivity.myStorageRef.child(imageFileName.toLowerCase()).putFile(file)
-//        uploadTask
-//                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>()
-//
-//                {
-//                    @Override
-//                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                        Uri uri = taskSnapshot.getUploadSessionUri();
-//                        baseActivity.myStorageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-//                            @Override
-//                            public void onSuccess(Uri uri) {
-//                                photoUrl = uri.toString();
-//                                Log.e(TAG, "onSuccess: " + photoUrl);
-//                            }
-//                        });
-//
-//                    }
-//                });
 
     }
 }

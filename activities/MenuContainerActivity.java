@@ -18,20 +18,25 @@ public class MenuContainerActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
 
-        MenuFragment menuFragment;
-        String teste;
-        String TAG = "MenuContainerActivity";
+    MenuFragment menuFragment;
+    String teste;
+    String TAG = "MenuContainerActivity";
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if(savedInstanceState!=null){
+
+            Bundle dadosFragment = savedInstanceState;
+
+        }
 
         //checando se usuario é administrativo, e mudando o menu
-        if(!userIsAdmin) {
+        if (!userIsAdmin) {
             setContentView(R.layout.activity_menu_container);
-        }else {
+        } else {
 
             setContentView(R.layout.activity_menu_container_admin);
         }
@@ -58,25 +63,22 @@ public class MenuContainerActivity extends BaseActivity
         }
 
 
-
-       //instanciando o fragmento padrão
+        //instanciando o fragmento padrão
 
         menuFragment = new MenuFragment();
 
 
-
-        addFragment2Frame(R.id.frMenuPrincipal,menuFragment);
+        addFragment2Frame(R.id.frMenuPrincipal, menuFragment);
 
 
     }
-
 
 
     @Override
     public void onBackPressed() {
 
 
-        if(!userIsAdmin) {
+        if (!userIsAdmin) {
             DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
             if (drawer.isDrawerOpen(GravityCompat.START)) {
                 drawer.closeDrawer(GravityCompat.START);
@@ -86,7 +88,7 @@ public class MenuContainerActivity extends BaseActivity
                 if (count == 1) {
                     super.onBackPressed();
                     //additional code
-                   addFragment2Frame(R.id.frMenuPrincipal,menuFragment);
+                    addFragment2Frame(R.id.frMenuPrincipal, menuFragment);
 
                 } else {
                     getSupportFragmentManager().popBackStack();
@@ -94,7 +96,7 @@ public class MenuContainerActivity extends BaseActivity
 
 
             }
-        }else {
+        } else {
             DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout_admin);
             if (drawer.isDrawerOpen(GravityCompat.START)) {
                 drawer.closeDrawer(GravityCompat.START);
@@ -105,7 +107,7 @@ public class MenuContainerActivity extends BaseActivity
                     super.onBackPressed();
                     //additional code
 
-                    addFragment2Frame(R.id.frMenuPrincipal,menuFragment);
+                    addFragment2Frame(R.id.frMenuPrincipal, menuFragment);
 
                 } else {
                     getSupportFragmentManager().popBackStack();
@@ -158,46 +160,82 @@ public class MenuContainerActivity extends BaseActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.admin) {
+        if (userIsAdmin) {
 
-            // Handle the admin action
-            startActivity(new Intent(getApplicationContext(),AdminActivity.class));
+            if (id == R.id.admin) {
+                // Handle the admin action
+                startActivity(new Intent(getApplicationContext(), AdminActivity.class));
 
-        } else if (id == R.id.nav_gallery) {
-            //todo take care!! using this only for test
-            startActivity(new Intent(getApplicationContext(),AdminActivity.class));
-        } else if (id == R.id.nav_slideshow) {
+            } else if (id == R.id.nav_eventos) {
 
-        } else if (id == R.id.nav_manage) {
+            } else if (id == R.id.nav_agenda) {
 
-            System.exit(0);
+            } else if (id == R.id.nav_sair) {
 
-        } else if (id == R.id.nav_share) {
+                System.exit(0);
 
-        } else if (id == R.id.nav_send) {
+            } else if (id == R.id.nav_share) {
 
+            } else if (id == R.id.nav_sac) {
+
+            }
+
+            return drawingLayout(userIsAdmin);
+
+        } else {
+
+            if (id == R.id.nav_menu) {
+                // Handle the admin action
+                startActivity(new Intent(getApplicationContext(), MenuContainerActivity.class));
+
+            } else if (id == R.id.nav_eventos) {
+
+            } else if (id == R.id.nav_reservas) {
+
+            } else if (id == R.id.nav_sair) {
+
+                System.exit(0);
+
+            } else if (id == R.id.nav_share) {
+
+            } else if (id == R.id.nav_sac) {//todo será diferente do sac admin??
+
+            }
+
+            return drawingLayout(userIsAdmin);
         }
-        if(!userIsAdmin) {
-            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-            drawer.closeDrawer(GravityCompat.START);
-            return true;
-        }else{
+
+    }
+
+    public boolean drawingLayout(boolean admin) {
+
+        if (admin) {
+
             DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout_admin);
             drawer.closeDrawer(GravityCompat.START);
             return true;
 
+        } else {
+
+            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+            drawer.closeDrawer(GravityCompat.START);
+            return true;
+
         }
+
     }
+
 
     @Override
     protected void onStart() {
-        Log.e("MENU_ON_START", "onStart: " + userIsAdmin );
+        Log.e("MENU_ON_START", "onStart: " + userIsAdmin);
         super.onStart();
 
     }
 
     @Override
     public void onStop() {
-        super.onStop();}
+        super.onStop();
+    }
 
 }

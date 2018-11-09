@@ -5,14 +5,17 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -41,15 +44,20 @@ public class EstoqueFragment extends Fragment {
     Button btSalvar, btExcluir, btAtualizar, btPlus, btMinus;
     EditText etQdade, etUser, etData, etTotal;
     boolean ativo = true;
+    boolean item,itemExist;
     String itemEstoque, qdadeEstoque, userEstoque, totalEstoque, tipoMedidaItemEstoque,codigoRef;
     String dataEntrada;
+    String TAG = "ESTOQUE_FRAGMENT";
     long itemCount;
+    String itemKey;
+    int total;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_estoque, container, false);
+        getActivity().setTitle("Estoque");
         spProdutos = v.findViewById(R.id.spNomeProdutoEstoque);
         spTipo = v.findViewById(R.id.spTipoMedidaEstoque);
         btAtualizar = v.findViewById(R.id.btAtualizar);
@@ -72,6 +80,18 @@ public class EstoqueFragment extends Fragment {
         etData.setKeyListener(null);//desabilita a edição
         etTotal.setKeyListener(null);
 
+        etQdade.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if(actionId == EditorInfo.IME_ACTION_GO){
+                    total = Integer.parseInt(etQdade.getText().toString()) + Integer.parseInt(etTotal.getText().toString());
+                    etTotal.setText(String.valueOf(total));
+                  return true;
+                }
+                return false;
+            }
+        });
+
         //sorting string-array
         String[] produtos = getResources().getStringArray(R.array.produtos_estoque);
         Arrays.sort(produtos);
@@ -85,7 +105,23 @@ public class EstoqueFragment extends Fragment {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-                itemEstoque = spProdutos.getItemAtPosition(position).toString();
+                itemEstoque = spProdutos.getItemAtPosition(position).toString();//ok
+                itemExist = findItemTotal(itemEstoque);//checa se item existe
+
+                if(itemExist){//only update database
+                    etTotal.setVisibility(View.VISIBLE);
+                    etTotal.setText(String.valueOf(total));
+                    btAtualizar.setVisibility(View.VISIBLE);
+                    btSalvar.setVisibility(View.INVISIBLE);
+                    etTotal.setText(String.valueOf(total));
+
+                }else {
+                    etTotal.setVisibility(View.VISIBLE);
+                    etTotal.setText(String.valueOf(total));
+                    btAtualizar.setVisibility(View.INVISIBLE);
+                    btSalvar.setVisibility(View.VISIBLE);
+                }
+
             }
 
             @Override
@@ -95,6 +131,9 @@ public class EstoqueFragment extends Fragment {
 
             }
         });
+
+
+
 
         spTipo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -109,6 +148,17 @@ public class EstoqueFragment extends Fragment {
 
                 tipoMedidaItemEstoque = null;
 
+            }
+        });
+
+        btAtualizar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //atualizar totalEstoque
+                baseActivity.myRef.child("estoque").child(itemKey)
+                .child("totalItemEstoque").setValue(total);
+                etQdade.setText("");
+                etTotal.setText("");
             }
         });
 
@@ -149,10 +199,49 @@ public class EstoqueFragment extends Fragment {
             }
         });
 
-        etTotal.setText(qdadeEstoque);
+        //etTotal.setText(qdadeEstoque);
+
+
 
         return v;
     }
+    private boolean findItemTotal(String itemEstoque) {
+
+        //todo acessar bd, ordenar por itemNome, somar total , atualizar esse item ao salvar
+        //todo mostrar tvTotal
+
+
+        // Read from the database
+        baseActivity.myRef.child("estoque").orderByChild(itemEstoque).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+                if(dataSnapshot.getChildrenCount()!=0){
+                    Estoque estoque = dataSnapshot.getValue(Estoque.class);
+                    item = true;
+                    itemKey = dataSnapshot.getKey();
+                    total = estoque.getTotalItemEstoque();
+
+
+                } else {
+                    item = false;//todo atualizar não/key não existe
+                }
+//                String value = dataSnapshot.getValue(String.class);
+//                Log.d(TAG, "Value is: " + value);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // Failed to read value
+                Log.w(TAG, "Failed to read value.", error.toException());
+            }
+        });
+
+        return item;
+
+    }
+
 
     private void addRegistro(String nome, int qdade, String tipoMedida,  String dataIn,
                              int tot, String usuario, boolean isActive) {
@@ -202,7 +291,7 @@ public class EstoqueFragment extends Fragment {
             valid = false;
 
         } else {
-            etTotal.setText(qdadeEstoque);
+            etTotal.setText(String.valueOf(total));
             etQdade.setError(null);
 
         }

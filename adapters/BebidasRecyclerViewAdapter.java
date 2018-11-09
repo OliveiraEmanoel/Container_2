@@ -19,22 +19,20 @@ import java.text.DecimalFormat;
 import java.util.List;
 
 import br.com.emanoel.oliveira.container.R;
-import br.com.emanoel.oliveira.container.activities.BaseActivity;
 import br.com.emanoel.oliveira.container.models.Produtos;
 
-public class ComidasRecyclerViewAdapter extends RecyclerView.Adapter<ComidasRecyclerViewAdapter.ViewHolder> {
+public class BebidasRecyclerViewAdapter extends RecyclerView.Adapter<BebidasRecyclerViewAdapter.ViewHolder> {
 
     private List<Produtos> produtos;
     private Context context;
     String TAG = "RECYCLERVIEW_HOLDER";
     private ProgressDialog progressDialog;
-    BaseActivity baseActivity;
     View v;
     DecimalFormat f;
 
 
 
-    public ComidasRecyclerViewAdapter(Context context, List<Produtos> produtos) {
+    public BebidasRecyclerViewAdapter(Context context, List<Produtos> produtos) {
         this.produtos = produtos;
         this.context = context;
     }
@@ -49,8 +47,8 @@ public class ComidasRecyclerViewAdapter extends RecyclerView.Adapter<ComidasRecy
     @Override
     public ViewHolder onCreateViewHolder( ViewGroup parent, int viewType) {
 
-        v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_produtos_comidas, parent, false);
-        baseActivity = new BaseActivity();
+        v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_produtos_bebidas, parent, false);
+
 
         return new ViewHolder(v);
     }
@@ -67,11 +65,10 @@ public class ComidasRecyclerViewAdapter extends RecyclerView.Adapter<ComidasRecy
         holder.tvPrecoItemInteiro.setText(f.format(produto.getPrice()));
         holder.tvDescricaoItem.setText(produto.getDescription());
 
-       // showProgressDialog();
+        //showProgressDialog();
 
         Picasso picasso = new Picasso.Builder(getContext())
                 .memoryCache(new LruCache(250000))
-
                 .build();
 
 
@@ -79,7 +76,6 @@ public class ComidasRecyclerViewAdapter extends RecyclerView.Adapter<ComidasRecy
                 //.load("https://firebasestorage.googleapis.com/v0/b/container-3749e.appspot.com/o/container%2Fprodutos%2F20181026_221205.jpg?alt=media&token=e9ca3f59-bda6-4723-9f81-53a8fac99371")
                 //.placeholder(R.drawable.progress_animation)
                 .load(produto.getFotoPath())
-
                 .error(R.drawable.logo_container_original)
                 .into(holder.imageView2, new Callback() {
                     @Override

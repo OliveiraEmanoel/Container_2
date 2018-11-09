@@ -3,14 +3,17 @@ package br.com.emanoel.oliveira.container.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
@@ -41,6 +44,10 @@ public class ComidasFragment extends Fragment {
     BaseActivity baseActivity;
     private final String TAG = "READING_FROM_DATABASE";
     private Produtos produto;
+    private FirebaseAnalytics mFirebaseAnalytics;
+    LinearLayoutManager llmComidas;
+    Bundle mRvState;
+    private final String KEY_RECYCLER_STATE = "recycler_state";
 
 
     Context context;
@@ -51,17 +58,25 @@ public class ComidasFragment extends Fragment {
     }
 
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
 
+        if(savedInstanceState!=null){
 
+            Parcelable rvState = mRvState.getParcelable(KEY_RECYCLER_STATE);
+            rvComidas.getLayoutManager().onRestoreInstanceState(rvState);
+
+        }
+
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
+        mRvState = new Bundle();
         View v = inflater.inflate(R.layout.fragment_comidas, container, false);
         getActivity().setTitle("Comidas&Porções");
         rvComidas = v.findViewById(R.id.rvComidas);
         baseActivity = new BaseActivity();
+
 
         unbinder = ButterKnife.bind(this, v);
 
@@ -69,55 +84,118 @@ public class ComidasFragment extends Fragment {
 
         setLayoutAdapter();
 
+        v.setFocusableInTouchMode(true);
+        v.requestFocus();
+        v.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if( keyCode == KeyEvent.KEYCODE_BACK )
+                {
+                    Parcelable rvState = rvComidas.getLayoutManager().onSaveInstanceState();
+
+                    mRvState.putParcelable(KEY_RECYCLER_STATE,rvState);
+                    onSaveInstanceState(mRvState);
+                   getFragmentManager().popBackStack();
+                    return true;
+                }
+                return false;
+            }
+        });
+
         return v;
 
 
     }
+
     private void initializeData() {
 
         produtosArrayList = new ArrayList<>();
-       produtosArrayList.clear();//clear previous data
+        produtosArrayList.clear();//clear previous data
 
         // Read from the database
         baseActivity.myRef.child("produtos").orderByChild("tipo").equalTo("comidas")
+                //baseActivity.myRef.keepSynced(true);
+                //baseActivity.myRef
                 .addValueEventListener(new ValueEventListener() {
 
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
 
-                for(DataSnapshot produtosSnapshot : dataSnapshot.getChildren()){
-                    produto = produtosSnapshot.getValue(Produtos.class);
-                    produtosArrayList.add(produto);
-                    //Log.d(TAG, "Title: " + roupa.getTitle() + ",description " + roupa.getDescription() + " price" + roupa.getPrice());
-                }
-                setLayoutAdapter();
-            }
-            @Override
-            public void onCancelled(DatabaseError error) {
-                // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException());
-            }
-        });
+                        for (DataSnapshot produtosSnapshot : dataSnapshot.getChildren()) {
+                            produto = produtosSnapshot.getValue(Produtos.class);
+                            produtosArrayList.add(produto);
+                            //Log.d(TAG, "Title: " + roupa.getTitle() + ",description " + roupa.getDescription() + " price" + roupa.getPrice());
+                        }
+                        setLayoutAdapter();
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError error) {
+                        // Failed to read value
+                        Log.w(TAG, "Failed to read value.", error.toException());
+                    }
+                });
 
     }
 
-    private void setLayoutAdapter(){
+    private void setLayoutAdapter() {
 
         //setting layout manager
-        LinearLayoutManager llm = new LinearLayoutManager(ComidasFragment.this.getContext());
+        llmComidas = new LinearLayoutManager(ComidasFragment.this.getContext());
+
 
         rvComidas.setHasFixedSize(true);
-        rvComidas.setLayoutManager(llm);
+        rvComidas.setItemViewCacheSize(20);
+        rvComidas.setDrawingCacheEnabled(true);
+        rvComidas.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        rvComidas.setLayoutManager(llmComidas);
         //setting adapter
         adapter = new ComidasRecyclerViewAdapter(ComidasFragment.this.getContext(), produtosArrayList);
         rvComidas.setAdapter(adapter);
 
     }
+    @Override
+    public void onSaveInstanceState(Bundle RvState){
 
+//        mRvState = new Bundle();
+//        Parcelable rvState = rvComidas.getLayoutManager().onSaveInstanceState();
+//        mRvState.putParcelable(KEY_RECYCLER_STATE,rvState);
+        super.onSaveInstanceState(RvState);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        super.onSaveInstanceState(mRvState);
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        //save state of recycler view
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(mRvState!=null){
+
+            Parcelable rvState = mRvState.getParcelable(KEY_RECYCLER_STATE);
+            rvComidas.getLayoutManager().onRestoreInstanceState(rvState);
+
+        }
+    }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        unbinder.unbind();
+        //unbinder.unbind();
+        mRvState = new Bundle();
+        Parcelable rvState = rvComidas.getLayoutManager().onSaveInstanceState();
+        mRvState.putParcelable(KEY_RECYCLER_STATE,rvState);
+        super.onSaveInstanceState(mRvState);
     }
 }

@@ -108,7 +108,7 @@ public class UsuariosFragment extends Fragment {
 
     private void addRegistro(String nome, String email, String dataIn,
                              String user, boolean isWorker, boolean isActive) {
-
+        //todo check if user exist
         AdmUsers admUsers = new AdmUsers(nome, email, dataIn, isWorker, user, isActive);
         try {
             baseActivity.myRef.child("usuarios_admin").push().setValue(admUsers);
