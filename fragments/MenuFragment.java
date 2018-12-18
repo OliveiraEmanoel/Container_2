@@ -92,7 +92,7 @@ public class MenuFragment extends Fragment {
     public void callFragment(int i, Fragment fragment) {
 
         FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction transaction = fragmentManager.beginTransaction().addToBackStack(teste);
+        FragmentTransaction transaction = fragmentManager.beginTransaction().addToBackStack(null);
         transaction.replace(i, fragment);
         transaction.commit();
 

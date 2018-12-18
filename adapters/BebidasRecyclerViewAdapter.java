@@ -120,7 +120,7 @@ public class BebidasRecyclerViewAdapter extends RecyclerView.Adapter<BebidasRecy
             tvDescricaoItem = itemView.findViewById(R.id.tvDescricaoItem);
             tvNomeItem = itemView.findViewById(R.id.tvNomeItem);
             tvPrecoItemInteiro = itemView.findViewById(R.id.tvPrecoItemInteiro);
-            imageView2 = itemView.findViewById(R.id.imageView2);
+            imageView2 = itemView.findViewById(R.id.ivQrCode);
 
         }
     }

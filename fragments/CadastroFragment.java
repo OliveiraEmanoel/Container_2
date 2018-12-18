@@ -61,6 +61,10 @@ public class CadastroFragment extends Fragment {
                 } else if (checkedId == R.id.rbCadastroEstoque) {
                     tipoCadastro = "estoque";
                     iniciaAtividade(tipoCadastro);
+                } else if (checkedId == R.id.rbCadastroEventos){
+                    tipoCadastro = "eventos";
+                    iniciaAtividade(tipoCadastro);
+
                 }
 
             }

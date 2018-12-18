@@ -7,6 +7,7 @@ import android.support.v7.app.ActionBar;
 import android.util.Log;
 
 import br.com.emanoel.oliveira.container.R;
+import br.com.emanoel.oliveira.container.fragments.CadastroEventosFragment;
 import br.com.emanoel.oliveira.container.fragments.ComprasFragment;
 import br.com.emanoel.oliveira.container.fragments.EstoqueFragment;
 import br.com.emanoel.oliveira.container.fragments.GruposFragment;
@@ -26,6 +27,7 @@ public class TiposCadastrosActivity extends BaseActivity {
     private UsuariosFragment usuariosFragment;
     private ProdutosMenuFragment produtosMenuFragment;
     private EstoqueFragment estoqueFragment;
+    private CadastroEventosFragment cadastroEventos;
     private int frameId;
 
     @Override
@@ -47,6 +49,7 @@ public class TiposCadastrosActivity extends BaseActivity {
         usuariosFragment = new UsuariosFragment();
         produtosMenuFragment = new ProdutosMenuFragment();
         estoqueFragment = new EstoqueFragment();
+        cadastroEventos = new CadastroEventosFragment();
 
         frameId = R.id.frConteudoTiposCadastros;
 
@@ -64,6 +67,8 @@ public class TiposCadastrosActivity extends BaseActivity {
             callFragment(frameId,mesasFragment);
         }else if (tipoCadastro.equals("estoque")) {
             callFragment(frameId, estoqueFragment);
+        }else if (tipoCadastro.equals("eventos")) {
+            callFragment(frameId, cadastroEventos);
         }
 
     }
@@ -84,6 +89,7 @@ public class TiposCadastrosActivity extends BaseActivity {
 
         if (count == 0) {
             super.onBackPressed();
+            getSupportFragmentManager().popBackStack();
             //additional code
         } else {
 

@@ -118,9 +118,9 @@ public class SugestaoFragment extends Fragment {
     }
 
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        unbinder.unbind();
-    }
+//    @Override
+//    public void onDestroyView() {
+//        super.onDestroyView();
+//        unbinder.unbind();
+//    }
 }

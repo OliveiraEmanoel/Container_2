@@ -189,13 +189,13 @@ public class ComidasFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        //unbinder.unbind();
-        mRvState = new Bundle();
-        Parcelable rvState = rvComidas.getLayoutManager().onSaveInstanceState();
-        mRvState.putParcelable(KEY_RECYCLER_STATE,rvState);
-        super.onSaveInstanceState(mRvState);
-    }
+//    @Override
+//    public void onDestroyView() {
+//        super.onDestroyView();
+//        //unbinder.unbind();
+//        mRvState = new Bundle();
+//        Parcelable rvState = rvComidas.getLayoutManager().onSaveInstanceState();
+//        mRvState.putParcelable(KEY_RECYCLER_STATE,rvState);
+//        super.onSaveInstanceState(mRvState);
+//    }
 }

@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -48,10 +49,9 @@ public class BaseActivity extends AppCompatActivity {
     public DecimalFormat value = new DecimalFormat("0.00");
     public DecimalFormat f = new DecimalFormat("R$ 0.00");
     public static ArrayList<String> globalArray = new ArrayList<>();
-    //public static ArrayList<Produto_Tecido> produtoTedidoArrayList = new ArrayList<>();
-   // public static List<Produto_Tecido> cart;
+
     public static ArrayList<String> produtoKey = new ArrayList<>();
-    public String userID;
+    public static String userID;
     public static String userNome;
     public static String userLogado;
     List<AdmUsers> admUsersList;
@@ -145,10 +145,23 @@ public class BaseActivity extends AppCompatActivity {
 
     public void addFragment2Frame(int frame, Fragment fragment){
 
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction().addToBackStack(null);
-        transaction.add(frame,fragment);
+        String backStateName = fragment.getClass().getName();
 
-        transaction.commit();
+        FragmentManager manager = getSupportFragmentManager();
+        boolean fragmentPopped = manager.popBackStackImmediate(backStateName, 0);
+
+        if (!fragmentPopped && manager.findFragmentByTag(backStateName) == null) {
+            FragmentTransaction ft = manager.beginTransaction();
+            ft.replace(frame, fragment, backStateName);
+            ft.addToBackStack(backStateName);
+
+            ft.commit();
+        }
+
+//        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction().addToBackStack(null);
+//        transaction.add(frame,fragment);
+//
+//        transaction.commit();
     }
 
     public String getRealPathFromURI(Context context, Uri contentUri) {

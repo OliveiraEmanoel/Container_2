@@ -12,6 +12,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import br.com.emanoel.oliveira.container.R;
+import br.com.emanoel.oliveira.container.fragments.DiversosFragment;
+import br.com.emanoel.oliveira.container.fragments.EventosFragment;
 import br.com.emanoel.oliveira.container.fragments.MenuFragment;
 
 public class MenuContainerActivity extends BaseActivity
@@ -19,6 +21,8 @@ public class MenuContainerActivity extends BaseActivity
 
 
     MenuFragment menuFragment;
+    EventosFragment eventosFragment;
+    DiversosFragment diversosFragment;
     String teste;
     String TAG = "MenuContainerActivity";
 
@@ -167,10 +171,14 @@ public class MenuContainerActivity extends BaseActivity
                 startActivity(new Intent(getApplicationContext(), AdminActivity.class));
 
             } else if (id == R.id.nav_eventos) {
-
+                eventosFragment = new EventosFragment();
+                addFragment2Frame(R.id.frMenuPrincipal,eventosFragment);
             } else if (id == R.id.nav_agenda) {
 
-            } else if (id == R.id.nav_sair) {
+            }  else if (id == R.id.nav_diversos) {
+                diversosFragment = new DiversosFragment();
+                addFragment2Frame(R.id.frMenuPrincipal,diversosFragment);
+            }else if (id == R.id.nav_sair) {
 
                 System.exit(0);
 
@@ -185,21 +193,26 @@ public class MenuContainerActivity extends BaseActivity
         } else {
 
             if (id == R.id.nav_menu) {
-                // Handle the admin action
+
                 startActivity(new Intent(getApplicationContext(), MenuContainerActivity.class));
 
             } else if (id == R.id.nav_eventos) {
-
+                //show eventos ativos
+                eventosFragment = new EventosFragment();
+                addFragment2Frame(R.id.frMenuPrincipal,eventosFragment);
             } else if (id == R.id.nav_reservas) {
-
-            } else if (id == R.id.nav_sair) {
+                //show reservas
+            } else if (id == R.id.nav_diversos) {
+                diversosFragment = new DiversosFragment();
+                addFragment2Frame(R.id.frMenuPrincipal,diversosFragment);
+            }else if (id == R.id.nav_sair) {
 
                 System.exit(0);
 
             } else if (id == R.id.nav_share) {
-
+                //compartilhar o que? abre camera?
             } else if (id == R.id.nav_sac) {//todo será diferente do sac admin??
-
+                //fale conosco sms? email? chat?
             }
 
             return drawingLayout(userIsAdmin);
