@@ -2,8 +2,11 @@ package br.com.emanoel.oliveira.container.activities;//package br.com.emanoel.ol
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.provider.MediaStore;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.Fragment;
@@ -14,8 +17,11 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.StorageReference;
 
 import java.text.DecimalFormat;
@@ -23,8 +29,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Vector;
 
 import br.com.emanoel.oliveira.container.models.AdmUsers;
+import br.com.emanoel.oliveira.container.models.NomeWifi;
+import br.com.emanoel.oliveira.container.models.Pedido;
 
 /**
  * Created by USUARIO on 25/09/2017.
@@ -34,6 +43,7 @@ public class BaseActivity extends AppCompatActivity {
 
     public Calendar myCalendar;
     public String myFormat = "dd-MM-yyyy";
+    String myTime = "hh:mm:ss";
     public SimpleDateFormat sdf;
     public GlobalUserID globalUserID;
     public FirebaseDatabase mFirebaseDatabase = FirebaseDatabase.getInstance();
@@ -42,28 +52,40 @@ public class BaseActivity extends AppCompatActivity {
     public String nome_banco_dados = "container_bar";
     FirebaseAuth mAuth;
     FirebaseAuth.AuthStateListener mAuthListener;
-
+    public static String nroPedido, nomeProduto, nomeCliente, celCliente, obs, usuarioID;
     public DatabaseReference myRef = mFirebaseDatabase.getReference(nome_banco_dados);
-
+    public static String currentConnectedSSID;
     android.support.v7.app.ActionBar actionBar;
     public DecimalFormat value = new DecimalFormat("0.00");
     public DecimalFormat f = new DecimalFormat("R$ 0.00");
     public static ArrayList<String> globalArray = new ArrayList<>();
+    public static List<Pedido> pedido;
+    public static Pedido meuPedido = new Pedido();
 
     public static ArrayList<String> produtoKey = new ArrayList<>();
     public static String userID;
     public static String userNome;
+    public static boolean mesaHasUser;
     public static String userLogado;
     List<AdmUsers> admUsersList;
-
-    public static int nroItensCart;//vou usar como indice do array
+    public static double totalPedido = 0;
+    public static int nroMesa;
     public static double totalCart;
     public static int qdadePecas;
     public static boolean rvHasClicked = false; //used to monitor if recyclerView has received a click
     public static boolean userIsAdmin;// = false;//used to check if user can add new products on database
     public static boolean isNovidade = true; //used to show only news products as default from database
+    public static String nomeWifiAtual;//this name is setted at starting login activity
+    NomeWifi nomeWifi;
+    public long itemCount;
 
+    public static List<Pedido> getPedido() {
+        if (pedido == null) {
+            pedido = new Vector<Pedido>();
+        }
 
+        return pedido;
+    }
 
 //    public static List<Produto_Tecido> getCart() {
 //        if (cart == null) {
@@ -72,6 +94,23 @@ public class BaseActivity extends AppCompatActivity {
 //
 //        return cart;
 //    }
+
+    //check Wifi info
+    public boolean isConnectedTo(String ssid, Context context) {
+        boolean retVal = false;
+        WifiManager wifi = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        WifiInfo wifiInfo = wifi.getConnectionInfo();
+        if (wifiInfo != null) {
+            //https://stackoverflow.com/questions/41512450/string-replace-is-returning-extra-quotation-marks
+            currentConnectedSSID = wifiInfo.getSSID().replace("currentConnectedSSID:", "").replaceAll("\"", "");
+            Log.e("CHECANDO WIFI", "isConnected : " + currentConnectedSSID + ssid);
+
+            if (currentConnectedSSID.equals(ssid)) {
+                retVal = true;
+            }
+        }
+        return retVal;
+    }
 
     public Boolean isEmailValid(String email) {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
@@ -197,7 +236,57 @@ public class BaseActivity extends AppCompatActivity {
             }
         }
     }
+    //get name of WIFI network
+    public String getNomeAtual() {
 
+        try {
+
+            myRef.child("wifi");
+            //getting itemCount
+
+            myRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    itemCount = dataSnapshot.getChildrenCount();
+                    Log.e("GETNOMEWIFI", "onDataChange: " + itemCount);
+
+                    for (DataSnapshot ref : dataSnapshot.getChildren()) {
+
+                        if (!dataSnapshot.exists()) {
+                            nomeWifiAtual = " ";
+                            return;
+                        } else {
+                            nomeWifi = ref.getValue(NomeWifi.class);
+                           nomeWifiAtual = nomeWifi.getNomeWifi();
+
+                        }
+                    }
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+
+                }
+            });
+
+
+        } catch (Throwable e) {
+
+            e.printStackTrace();
+        }
+
+        return nomeWifiAtual;
+
+    }
+
+
+    public void settingBar() {
+
+        actionBar = getSupportActionBar();
+        if (actionBar != null) actionBar.setHomeButtonEnabled(true);
+    }
 
     public void myToastCurto(String mensagem) {
 
@@ -208,6 +297,25 @@ public class BaseActivity extends AppCompatActivity {
     public void myToastlongo(String mensagem) {
 
         Toast.makeText(getApplicationContext(), mensagem, Toast.LENGTH_LONG).show();
+
+    }
+
+    public void sendEmail2me(String assunto, String local, String erro, String data, String userId){
+
+        String corpo = "Aconteceu um erro em " + local + " // " + erro + " // " + data + " // " + userId;
+
+        Intent i = new Intent(Intent.ACTION_SENDTO);
+        i.setType("message/rfc822");
+        i.setData(Uri.parse("mailto:"));
+        i.putExtra(Intent.EXTRA_EMAIL  , new String[]{"emanoel@alfatektecnologia.com.br","emanoel_oliveira@hotmail.com"});
+        i.putExtra(Intent.EXTRA_SUBJECT, assunto);
+        i.putExtra(Intent.EXTRA_TEXT   , corpo);
+        try {
+            //startActivity(Intent.createChooser(i, "Send mail..."));
+            getApplicationContext().startActivity(i);
+        } catch (android.content.ActivityNotFoundException ex) {
+            Toast.makeText(getApplicationContext(), "Não existe software de email instalado...", Toast.LENGTH_SHORT).show();
+        }
 
     }
 

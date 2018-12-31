@@ -13,7 +13,11 @@ import br.com.emanoel.oliveira.container.R;
  * A simple {@link Fragment} subclass.
  */
 public class RifaFragment extends Fragment {
-
+/* colocar nomes de bandas de rock
+* cliente clica no nome da banda e aparece uma caixa de dialogo para ele marcar o nome, data e pagamento
+* se cliente reservou o clic fica indisponivel? ou deixamos aparecer  a caixa de dialogo com os dados do comprador?
+* marcar nome ou telefone ou userID?
+* uma foto do brinde?*/
 
     public RifaFragment() {
         // Required empty public constructor

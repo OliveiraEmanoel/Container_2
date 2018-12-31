@@ -153,6 +153,11 @@ public class MenuContainerActivity extends BaseActivity
         if (id == R.id.action_settings) {
             return true;
         }
+        if (id == R.id.action_wifi){
+
+            startActivity(new Intent(getApplicationContext(), SetarWifiActivity.class));
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }

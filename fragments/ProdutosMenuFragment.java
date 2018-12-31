@@ -134,7 +134,7 @@ public class ProdutosMenuFragment extends Fragment {
                         dataEntrada,
                         codigoRef,
                         isActive,
-                        tipo);
+                        tipo,0);
 
             }
         });
@@ -145,9 +145,9 @@ public class ProdutosMenuFragment extends Fragment {
 
 
     private void addRegistro(String nome, double price, String description, String fotoPath, String dataIn,
-                             String codigo, boolean isActive, String tipo) {
+                             String codigo, boolean isActive, String tipo, int favorito) {
 
-        Produtos produtos = new Produtos(nome, price, description, photoUrl, dataIn, codigo, isActive, tipo);
+        Produtos produtos = new Produtos(nome, price, description, photoUrl, dataIn, codigo, isActive, tipo,favorito);
         baseActivity.myRef.child("produtos").push().setValue(produtos);
         limparViews();
     }

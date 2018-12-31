@@ -2,35 +2,53 @@ package br.com.emanoel.oliveira.container.adapters;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
+import android.os.Environment;
+import android.os.StrictMode;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.LruCache;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.List;
 
 import br.com.emanoel.oliveira.container.R;
 import br.com.emanoel.oliveira.container.activities.BaseActivity;
+import br.com.emanoel.oliveira.container.activities.PedidoActivity;
+import br.com.emanoel.oliveira.container.activities.ScanQrCodeActivity;
+import br.com.emanoel.oliveira.container.models.Pedido;
 import br.com.emanoel.oliveira.container.models.Produtos;
 
 public class ComidasRecyclerViewAdapter extends RecyclerView.Adapter<ComidasRecyclerViewAdapter.ViewHolder> {
 
     private List<Produtos> produtos;
+    private List<Pedido> pedido;
     private Context context;
     String TAG = "RECYCLERVIEW_HOLDER";
     private ProgressDialog progressDialog;
     BaseActivity baseActivity;
     View v;
     DecimalFormat f;
+    PedidoActivity pedidoActivity;
+    Pedido meuPedido;
 
 
 
@@ -52,6 +70,10 @@ public class ComidasRecyclerViewAdapter extends RecyclerView.Adapter<ComidasRecy
         v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_produtos_comidas, parent, false);
         baseActivity = new BaseActivity();
 
+        //to avoid fileuriexposeexcption
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
+
         return new ViewHolder(v);
     }
 
@@ -66,6 +88,14 @@ public class ComidasRecyclerViewAdapter extends RecyclerView.Adapter<ComidasRecy
         holder.tvNomeItem.setText(produto.getNome());
         holder.tvPrecoItemInteiro.setText(f.format(produto.getPrice()));
         holder.tvDescricaoItem.setText(produto.getDescription());
+
+        if(produto.getFavorito()>0){
+
+            holder.tvFavoritoCount.setText(String.valueOf(produto.getFavorito()));
+
+        }else {
+            holder.tvFavoritoCount.setText("");
+        }
 
        // showProgressDialog();
 
@@ -104,19 +134,18 @@ public class ComidasRecyclerViewAdapter extends RecyclerView.Adapter<ComidasRecy
         return produtos.size();
     }
 
+
+
     public class ViewHolder extends RecyclerView.ViewHolder {
-        //    @BindView(R.id.imageView2)
         ImageView imageView2;
-        //    @BindView(R.id.tvNomeItem)
         TextView tvNomeItem;
-        //    @BindView(R.id.tvDescricaoItem)
         TextView tvDescricaoItem;
-        //    @BindView(R.id.tvPrecoItemInteiro)
         TextView tvPrecoItemInteiro;
-        //    @BindView(R.id.tvPrecoItemMeia)
         TextView tvPrecoItemMeia;
-        //    @BindView(R.id.cvComidas)
         CardView cvComidas;
+
+        ImageButton ibFavorito,ibComprar,ibShare;
+        TextView tvFavoritoCount;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -124,10 +153,162 @@ public class ComidasRecyclerViewAdapter extends RecyclerView.Adapter<ComidasRecy
             tvDescricaoItem = itemView.findViewById(R.id.tvDescricaoItem);
             tvNomeItem = itemView.findViewById(R.id.tvNomeItem);
             tvPrecoItemInteiro = itemView.findViewById(R.id.tvPrecoItemInteiro);
-            imageView2 = itemView.findViewById(R.id.ivQrCode);
+            imageView2 = itemView.findViewById(R.id.imageView2);
+
+            ibComprar = itemView.findViewById(R.id.ibComprar);
+            ibFavorito = itemView.findViewById(R.id.ibfavorito);
+            ibShare = itemView.findViewById(R.id.ibShare);
+            tvFavoritoCount = itemView.findViewById(R.id.tvfavoritoCount);
+
+            ibShare.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    imageView2.buildDrawingCache();
+
+                    saveAndShare(imageView2);
+                }
+
+
+            });
+
+            ibComprar.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //todo checar nropedido, nro de mesa,salvar pedido, mostrar pedido
+
+                    //checa se usuario está conectado no mesmo wifi do estabelecimento
+
+                    if (baseActivity.nomeWifiAtual!= "") {
+
+                        Log.e("CHECANDO WIFI", "onCreate: "+ baseActivity.currentConnectedSSID );
+
+                    }else {
+
+                        Toast.makeText(getContext(),"Pedidos? Solicite a senha do WIFI/local...",Toast.LENGTH_LONG).show();
+                        //btAddLanche.setVisibility(View.GONE);
+                        ibComprar.setVisibility(View.GONE);
+                    }
+
+                    if(!baseActivity.mesaHasUser) {//se nro >0 significa que já foi lido o Qrcode...
+                        lerQRcodeDaMesa(); //reading table number, retorna -1 qdo der errado a leitura
+                    }else{//dar sequencia na compra do item
+
+                        //Lanches lanche = (Lanches) object;
+                       // String nome = viewNome.getText().toString();
+                       // lanche = mList.get(getLayoutPosition());
+                        String nroPedido = "1";
+                        String nomeProduto = tvNomeItem.getText().toString();
+                        String descriProduto = tvDescricaoItem.getText().toString();
+                        String obs = "";
+                        int qdadeProduto = 1;
+                        double valorPedido = Double.parseDouble(tvPrecoItemInteiro.getText().toString());
+                        boolean viagem = false;
+                        boolean entregue = false;
+                        int nroMesa = baseActivity.nroMesa;
+                        String nomeCliente = baseActivity.userNome;
+                        String celCliente = "";
+                        String dataPedido = "";
+                        String horaPedido = "";
+                        String userId = baseActivity.userID;
+                        String status = "aberto";
+
+
+
+                        salvarPedidoTemp(nroPedido, nomeProduto, descriProduto,
+                                 obs, qdadeProduto,
+                                valorPedido, viagem, entregue, nroMesa, nomeCliente,
+                                celCliente, dataPedido, horaPedido,
+                                userId, status
+                        );
+
+                    }
+
+                }
+            });
 
         }
     }
+
+    public void salvarPedidoTemp(String nroPedido, String nomeProduto, String descriProduto,
+                                 String obs, int qdade, double valorPedido, boolean viagem,
+                                 boolean entregue, int nroMesa, String nomeCliente, String celCliente, String dataPedido
+            , String horaPedido, String userId, String status) {
+
+        pedido.add(new Pedido(nroPedido, nomeProduto, descriProduto, obs, qdade, valorPedido,
+                viagem, entregue, nroMesa,nomeCliente, celCliente, dataPedido, horaPedido, userId, status
+        ));
+
+        meuPedido.setNroPedido(nroPedido);
+        meuPedido.setNomeProduto(nomeProduto);
+        meuPedido.setDescriProduto(descriProduto);
+
+        meuPedido.setQdadeProduto(qdade);
+        meuPedido.setValorPedido(valorPedido);
+        meuPedido.setViagem(viagem);
+        meuPedido.setEntregue(entregue);
+        meuPedido.setNomeCliente(nomeCliente);
+        meuPedido.setCelCliente(celCliente);
+        meuPedido.setDataPedido(dataPedido);
+        meuPedido.setHoraPedido(horaPedido);
+        meuPedido.setUserId(userId);
+        meuPedido.setStatus(status);
+
+        baseActivity.totalPedido = baseActivity.totalPedido + meuPedido.getQdadeProduto()*meuPedido.getValorPedido();
+
+        // pedido.add(meuPedido);
+        Log.e("Salvando pedido", "tamanho = " + pedido.size() + " qdade= " + qdade);
+
+        getContext().startActivity(new Intent(getContext(),PedidoActivity.class));
+
+    }
+
+    public  void saveAndShare(ImageView p0){
+
+        BitmapDrawable drawable = (BitmapDrawable) p0.getDrawable();
+        Bitmap img = drawable.getBitmap();
+
+        //escolhe onde será gravada a imagem
+        File storageLoc = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES); //context.getExternalFilesDir(null);
+        //define o nome do arquivo
+        String filename = "temp.jpg";
+        File file = new File(storageLoc, filename);
+        //grava o arquivo
+        try {
+            FileOutputStream fos = new FileOutputStream(file);
+            img.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            fos.flush();
+            fos.close();
+
+            //atualiza o view da pasta onde foi graqvado o arquivo
+            Intent scanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+            scanIntent.setData(Uri.fromFile(file));
+            getContext().sendBroadcast(scanIntent);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //compartilha a imagem gravada utilizando o programa que o cliente quiser
+        Intent share = new Intent(Intent.ACTION_SEND);
+        share.setType("image/*");
+        share.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
+        getContext().startActivity(Intent.createChooser(share, "Compartilhar usando: "));
+
+    }
+
+    public void lerQRcodeDaMesa(){
+
+                Intent intent = new Intent(getContext(),ScanQrCodeActivity.class);
+
+                getContext().startActivity(intent);
+
+        }
+
+
+
 
     public void showProgressDialog() {
 

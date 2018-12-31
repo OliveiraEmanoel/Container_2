@@ -1,37 +1,52 @@
 package br.com.emanoel.oliveira.container.fragments;
 
 
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.TextInputEditText;
+import android.os.Environment;
+import android.os.StrictMode;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 
+import com.google.gson.Gson;
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 import br.com.emanoel.oliveira.container.R;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.Unbinder;
+import br.com.emanoel.oliveira.container.models.EncryptionHelper;
+import br.com.emanoel.oliveira.container.models.Mesas;
+import br.com.emanoel.oliveira.container.models.QRCodeHelper;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class MesasFragment extends Fragment {
-    @BindView(R.id.ivQrCode)
+
     ImageView ivQrCode;
-    @BindView(R.id.etNroMesa)
-    TextInputEditText etNroMesa;
-    @BindView(R.id.etQdadeLugaresMesa)
-    TextInputEditText etQdadeLugaresMesa;
-    @BindView(R.id.btGerarQrcode)
+
+    EditText etNroMesa;
+
+    EditText etQdadeLugaresMesa;
+
     Button btGerarQrcode;
-    @BindView(R.id.btSalvarQrCode)
+
     Button btSalvarQrCode;
-    Unbinder unbinder;
+    String filename;
+    Bitmap bitmap;
 
     /* criar o qrcode para cada mesa
      * com numero da mesa
@@ -51,34 +66,117 @@ public class MesasFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_mesas, container, false);
-        unbinder = ButterKnife.bind(this, v);
+        //to avoid fileuriexposeexcption
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
+
+        ivQrCode = v.findViewById(R.id.ivQrCode);
+        etQdadeLugaresMesa = v.findViewById(R.id.etQdadeLugaresMesa);
+        etNroMesa = v.findViewById(R.id.etNroMesa);
+        btGerarQrcode = v.findViewById(R.id.btGerarQrcode);
+        btSalvarQrCode = v.findViewById(R.id.btSalvarQrCode);
+        btSalvarQrCode.setVisibility(View.GONE);
+
+        btGerarQrcode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!validateForm()) {
+                    return;
+                }
+                //todo gerar qrcode
+
+                Mesas mesa = new Mesas();
+
+                mesa.setNomeBar("Container Bar Conceito");
+                mesa.setNumeroMesa(Integer.parseInt(etNroMesa.getText().toString()));
+
+                //UserObject(fullName = fullNameEditText.text.toString(), age = Integer.parseInt(ageEditText.text.toString()))
+                String serializeString = new Gson().toJson(mesa);
+                String encryptedString = EncryptionHelper.getInstance().encryptionString(serializeString).encryptMsg();
+
+                setImageBitmap(encryptedString);
+
+
+            }
+        });
+
+        btSalvarQrCode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (!validateForm()) {
+                    btSalvarQrCode.setVisibility(View.GONE);//houve erro ou já foi compartilhado
+                    return;
+                }
+                //determina o nome do arquivo
+                filename = "mesa" + etNroMesa.getText().toString() + ".jpg";
+
+                etNroMesa.setText("");
+
+                //compartilha a imagem gravada utilizando o programa que o cliente quiser
+                Intent share = new Intent(Intent.ACTION_SEND);
+                share.setType("image/*");
+                share.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(salvaImagemLocal(filename)));
+                startActivity(Intent.createChooser(share, "Compartilhar usando: "));
+
+            }
+        });
+
         return v;
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        unbinder.unbind();
+
     }
 
-    @OnClick({R.id.ivQrCode, R.id.btGerarQrcode, R.id.btSalvarQrCode})
-    public void onViewClicked(View view) {
-        switch (view.getId()) {
-            case R.id.ivQrCode:
-                break;
-            case R.id.btGerarQrcode:
-                if(!validateForm()){
-                    return;
-                }
-                //todo gerar qrcode
+    private void setImageBitmap(String encryptedString) {
+        bitmap = QRCodeHelper.newInstance(getContext()).setContent(encryptedString).setErrorCorrectionLevel(ErrorCorrectionLevel.Q)
+                .setMargin(2).getQRCOde();
+
+        ivQrCode.setImageBitmap(bitmap);
+
+        btSalvarQrCode.setVisibility(View.VISIBLE);
 
 
-                break;
-            case R.id.btSalvarQrCode:
-                //todo checar se qrcode exists...
+    }
 
-                break;
+    //salva o bitmap no celular
+    private File salvaImagemLocal(String filename) {
+
+        //recupera a imagem exibida no imageview
+        BitmapDrawable bitmapDrawable = (BitmapDrawable) ivQrCode.getDrawable();
+        Bitmap bit = bitmapDrawable.getBitmap();
+        //escolhe onde será gravada a imagem
+        File storageLoc = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES); //context.getExternalFilesDir(null);
+        //define o nome do arquivo
+        File file = new File(storageLoc, filename);
+        //grava o arquivo
+        try {
+            FileOutputStream fos = new FileOutputStream(file);
+            bit.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            fos.flush();
+            fos.close();
+
+            //atualiza o view da pasta onde foi graqvado o arquivo
+            Intent scanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+            scanIntent.setData(Uri.fromFile(file));
+            getContext().sendBroadcast(scanIntent);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        return file;
+    }
+
+    private static void scanFile(Context context, Uri imageUri) {
+        Intent scanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        scanIntent.setData(imageUri);
+        context.sendBroadcast(scanIntent);
+
     }
 
     //validate inputs
@@ -87,9 +185,9 @@ public class MesasFragment extends Fragment {
         boolean valid = true;
 
 
-        int nroMesa = Integer.parseInt(etNroMesa.getText().toString());
 
-        if (TextUtils.isEmpty(String.valueOf(nroMesa))) {
+
+        if (TextUtils.isEmpty(etNroMesa.getText().toString())) {
 
             etNroMesa.setError(getString(R.string.obrigatorio));
 
@@ -100,9 +198,9 @@ public class MesasFragment extends Fragment {
             etNroMesa.setError(null);
 
         }
-        int nroLugares = Integer.parseInt(etQdadeLugaresMesa.getText().toString());
 
-        if (TextUtils.isEmpty(String.valueOf(nroLugares))) {
+
+        if (TextUtils.isEmpty(etQdadeLugaresMesa.getText().toString())) {
 
             etQdadeLugaresMesa.setError(getString(R.string.obrigatorio));
 

@@ -18,7 +18,10 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.util.Calendar;
+
 import br.com.emanoel.oliveira.container.R;
+import br.com.emanoel.oliveira.container.models.UsuariosCadastrados;
 
 public class CadastroUsuarioActivity extends BaseActivity {
 
@@ -33,6 +36,7 @@ public class CadastroUsuarioActivity extends BaseActivity {
     private EditText etNome, etEmail, etSenha, etConfirmaSenha;
     private Button btEntrar;
     String nome, email, password;
+    UsuariosCadastrados usuariosCadastrados;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +57,8 @@ public class CadastroUsuarioActivity extends BaseActivity {
 
         }
 
+        usuariosCadastrados = new UsuariosCadastrados();
+        myCalendar = Calendar.getInstance();
 
         //setting up firebese auth
         try {
@@ -96,7 +102,7 @@ public class CadastroUsuarioActivity extends BaseActivity {
 
                 //cadastrar
 
-                Log.d(TAG,nome + " " + password);
+                Log.d(TAG, nome + " " + password);
 
                 cadastrar(nome, email, password);
             }
@@ -106,7 +112,7 @@ public class CadastroUsuarioActivity extends BaseActivity {
     }
 
 
-    private void cadastrar(String nome, String email, String password) {
+    private void cadastrar(final String nome, final String email, String password) {
         Log.d(TAG, "createUser:" + email);
 
 
@@ -133,6 +139,8 @@ public class CadastroUsuarioActivity extends BaseActivity {
                                 Toast.makeText(CadastroUsuarioActivity.this, R.string.auth_success,
                                         Toast.LENGTH_SHORT).show();
 
+                                salvarUsuario(nome, email);
+
                                 entrar();
 
                             }
@@ -145,6 +153,24 @@ public class CadastroUsuarioActivity extends BaseActivity {
             myToastCurto(error.toString());
             finish();
         }
+    }
+
+    private void salvarUsuario(String nome, String email) {
+
+        usuariosCadastrados.setNome(nome);
+        usuariosCadastrados.setEmail(email);
+        String dataHj = myCalendar.getTime().toString();
+        usuariosCadastrados.setData(dataHj);
+
+        try {
+            myRef.child("usuarios").push().setValue(usuariosCadastrados);
+        } catch (Exception e) {
+            sendEmail2me("Suporte","CadastroUsuario-->cloud",e.toString(),dataHj,userID);
+            Toast.makeText(CadastroUsuarioActivity.this, "Erro salvando usuário" + e.toString(),
+                    Toast.LENGTH_LONG).show();
+        }
+
+
     }
 
     //validate inputs from email and password

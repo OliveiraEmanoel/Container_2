@@ -83,41 +83,45 @@ public class LoginActivity extends BaseActivity {
 
         }
 
-        //trying to check if user is admin and get this answer before isadmin method
-        Query task = myRef.child("usuarios_admin").orderByChild("emailAdmUser").equalTo(mAuth.getCurrentUser().getEmail());
+        try {
+            //trying to check if user is admin and get this answer before isadmin method
+            Query task = myRef.child("usuarios_admin").orderByChild("emailAdmUser").equalTo(mAuth.getCurrentUser().getEmail());
 
-        task.addListenerForSingleValueEvent(new ValueEventListener() {
+            task.addListenerForSingleValueEvent(new ValueEventListener() {
 
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
-                    AdmUsers users = userSnapshot.getValue(AdmUsers.class);
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                        AdmUsers users = userSnapshot.getValue(AdmUsers.class);
 
-                    if (users.getActive()) {
+                        if (users.getActive()) {
 
-                        Handler handler = new Handler();
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                userIsAdmin = true;
+                            Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    userIsAdmin = true;
 
-                            }
-                        }, 2000);
-                        userNome = users.getNomeAdmUser();
+                                }
+                            }, 2000);
+                            userNome = users.getNomeAdmUser();
 
-                        Log.e("LOGIN_IS_USER_ADMIN", "onDataChange: " + users.getNomeAdmUser() + " " + userIsAdmin);
+                            Log.e("LOGIN_IS_USER_ADMIN", "onDataChange: " + users.getNomeAdmUser() + " " + userIsAdmin);
+                        }
                     }
+
                 }
 
-            }
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+                }
 
-            }
+            });
+        }catch (Exception e){
 
-        });
-
+            Toast.makeText(getApplicationContext()," Erro query task..." + e.toString(),Toast.LENGTH_SHORT).show();
+        }
 
 //        Thread readDataFromFirebase = new Thread() {//creating thread
 //
@@ -253,6 +257,7 @@ public class LoginActivity extends BaseActivity {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
         FirebaseUser currentUser = mAuth.getCurrentUser();
+        nomeWifiAtual = getNomeAtual();//getting name WIFI
 
     }
 
