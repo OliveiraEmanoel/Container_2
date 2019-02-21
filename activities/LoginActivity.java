@@ -37,6 +37,7 @@ public class LoginActivity extends BaseActivity {
     String email;
     private String password;
     EditText etEmail;
+    String currentUser;
     EditText etSenha;
     TextView tvClick;
     private Button btEntrar;
@@ -51,6 +52,7 @@ public class LoginActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
         try {
             mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
         } catch (Exception e) {
@@ -78,6 +80,7 @@ public class LoginActivity extends BaseActivity {
         //setting up firebese auth
         try {
             mAuth = FirebaseAuth.getInstance();
+            currentUser = mAuth.getCurrentUser().getEmail();
         } catch (Exception error) {
             Log.e(TAG, "Setting instance: " + error);
 

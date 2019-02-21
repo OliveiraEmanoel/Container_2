@@ -104,6 +104,10 @@ public class CadastroUsuarioActivity extends BaseActivity {
 
                 Log.d(TAG, nome + " " + password);
 
+                //habilitar administração/cadastro?
+                isUserAdmin(etEmail.getText().toString());
+
+
                 cadastrar(nome, email, password);
             }
         });
@@ -118,9 +122,6 @@ public class CadastroUsuarioActivity extends BaseActivity {
 
         showProgressDialog();
 
-        //Create account
-
-        //todo check if user exist?
 
         try {
             mAuth.createUserWithEmailAndPassword(email, password)
@@ -131,9 +132,18 @@ public class CadastroUsuarioActivity extends BaseActivity {
 
 
                             if (!task.isSuccessful()) {
-//                                Toast.makeText(LoginActivity.this, R.string.auth_failed + task.getException(),
-//                                        Toast.LENGTH_SHORT).show();
+
                                 Log.d(TAG, "createUserWithEmail:onComplete:" + task.getException());
+
+                                //se usuario ja está cadastrado, mostra mensagem e vai para login todo testar
+                                if(task.getException().toString().contains("The email address is already in use by another account.")){
+                                    Toast.makeText(CadastroUsuarioActivity.this,"E-mail já em uso por outro usuário",
+                                            Toast.LENGTH_SHORT).show();
+
+                                    entrar();
+
+                                }
+
                             } else {
 
                                 Toast.makeText(CadastroUsuarioActivity.this, R.string.auth_success,
@@ -261,7 +271,6 @@ public class CadastroUsuarioActivity extends BaseActivity {
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             Log.d(TAG, "signInWithEmail:onComplete:" + task.isSuccessful());
 
-
                             if (!task.isSuccessful()) {
                                 Log.w(TAG, "signInWithEmail:failed", task.getException());
                                 etSenha.setText("");//clear etsenha
@@ -293,7 +302,6 @@ public class CadastroUsuarioActivity extends BaseActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
     }
-
 
     @Override
     public void onStop() {

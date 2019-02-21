@@ -44,7 +44,7 @@ public class BaseActivity extends AppCompatActivity {
     public Calendar myCalendar;
     public String myFormat = "dd-MM-yyyy";
     String myTime = "hh:mm:ss";
-    public SimpleDateFormat sdf;
+    public SimpleDateFormat sdf,sdfData;
     public GlobalUserID globalUserID;
     public FirebaseDatabase mFirebaseDatabase = FirebaseDatabase.getInstance();
 
@@ -54,6 +54,7 @@ public class BaseActivity extends AppCompatActivity {
     FirebaseAuth.AuthStateListener mAuthListener;
     public static String nroPedido, nomeProduto, nomeCliente, celCliente, obs, usuarioID;
     public DatabaseReference myRef = mFirebaseDatabase.getReference(nome_banco_dados);
+
     public static String currentConnectedSSID;
     android.support.v7.app.ActionBar actionBar;
     public DecimalFormat value = new DecimalFormat("0.00");
@@ -73,7 +74,7 @@ public class BaseActivity extends AppCompatActivity {
     public static double totalCart;
     public static int qdadePecas;
     public static boolean rvHasClicked = false; //used to monitor if recyclerView has received a click
-    public static boolean userIsAdmin;// = false;//used to check if user can add new products on database
+    public static boolean userIsAdmin ;// = false;//used to check if user can add new products on database
     public static boolean isNovidade = true; //used to show only news products as default from database
     public static String nomeWifiAtual;//this name is setted at starting login activity
     NomeWifi nomeWifi;
@@ -87,13 +88,7 @@ public class BaseActivity extends AppCompatActivity {
         return pedido;
     }
 
-//    public static List<Produto_Tecido> getCart() {
-//        if (cart == null) {
-//            cart = new Vector<Produto_Tecido>();
-//        }
-//
-//        return cart;
-//    }
+
 
     //check Wifi info
     public boolean isConnectedTo(String ssid, Context context) {
@@ -241,10 +236,10 @@ public class BaseActivity extends AppCompatActivity {
 
         try {
 
-            myRef.child("wifi");
+           // myRef.child("wifi").orderByChild("nomeWifi");
             //getting itemCount
 
-            myRef.addValueEventListener(new ValueEventListener() {
+            myRef.child("wifi").orderByChild("nomeWifi").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     itemCount = dataSnapshot.getChildrenCount();
@@ -258,7 +253,7 @@ public class BaseActivity extends AppCompatActivity {
                         } else {
                             nomeWifi = ref.getValue(NomeWifi.class);
                            nomeWifiAtual = nomeWifi.getNomeWifi();
-
+                            Log.e("GETNOMEWIFI", "Nome Wifi Atual = : " + nomeWifiAtual);
                         }
                     }
 

@@ -48,6 +48,7 @@ public class ProdutosMenuFragment extends Fragment {
     Button btBrowse;
     EditText etNome;
     EditText etValor;
+    EditText etValorCusto;
     EditText etDetalhes;
     RadioGroup radioGroup;
     Button btSalvarProduto;
@@ -78,6 +79,7 @@ public class ProdutosMenuFragment extends Fragment {
         etDetalhes = v.findViewById(R.id.etDetalhes);
         etNome = v.findViewById(R.id.etNome);
         etValor = v.findViewById(R.id.etValor);
+        etValorCusto = v.findViewById(R.id.etValorCusto);
         radioGroup = v.findViewById(R.id.rgTipoProdutoMenu);
 
         btSalvarProduto = v.findViewById(R.id.btSalvarProduto);
@@ -134,7 +136,8 @@ public class ProdutosMenuFragment extends Fragment {
                         dataEntrada,
                         codigoRef,
                         isActive,
-                        tipo,0);
+                        tipo,0,
+                        Double.parseDouble(etValorCusto.getText().toString()));
 
             }
         });
@@ -145,9 +148,9 @@ public class ProdutosMenuFragment extends Fragment {
 
 
     private void addRegistro(String nome, double price, String description, String fotoPath, String dataIn,
-                             String codigo, boolean isActive, String tipo, int favorito) {
+                             String codigo, boolean isActive, String tipo, int favorito, double custo) {
 
-        Produtos produtos = new Produtos(nome, price, description, photoUrl, dataIn, codigo, isActive, tipo,favorito);
+        Produtos produtos = new Produtos(nome, price, description, photoUrl, dataIn, codigo, isActive, tipo,favorito,custo);
         baseActivity.myRef.child("produtos").push().setValue(produtos);
         limparViews();
     }
@@ -178,6 +181,14 @@ public class ProdutosMenuFragment extends Fragment {
                 valid = false;
             } else {
                 etValor.setError(null);
+            }
+
+            String valcust = etValorCusto.getText().toString();
+            if (TextUtils.isEmpty(valcust)) {
+                etValorCusto.setError(getString(R.string.obrigatorio));
+                valid = false;
+            } else {
+                etValorCusto.setError(null);
             }
 
             String valGG = etDetalhes.getText().toString().toUpperCase();//valGG nada a ver...apenas reaproveitando codigo

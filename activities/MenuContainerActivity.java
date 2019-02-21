@@ -37,6 +37,7 @@ public class MenuContainerActivity extends BaseActivity
 
         }
 
+
         //checando se usuario é administrativo, e mudando o menu
         if (!userIsAdmin) {
             setContentView(R.layout.activity_menu_container);

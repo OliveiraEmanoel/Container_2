@@ -1,5 +1,7 @@
 package br.com.emanoel.oliveira.container.activities;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.util.Log;
@@ -35,15 +37,17 @@ public class PedidoActivity extends BaseActivity {
     int qdadeLanche;
     int grupoColor;
     double valorPedido;
-   // Button btAddLanche;
-    Button btFinalizarPedido;
-    EditText etObs, etNomeCliente, etCelCliente, etValorTotal;
+
+    Button btFinalizarPedido, btLerQrcode;
+    EditText etObs, etNomeCliente, etMesa;
+    public EditText etValorTotal;
     TextView nrPedido;
-    CheckBox sms,pago,viagem;
+    CheckBox viagem;
     Bundle array = new Bundle();
     FloatingActionButton fab;
     String indiceKey;
-    String ssid = "Emanoel";//todo ????
+
+
     Calendar time;
 
 
@@ -55,40 +59,42 @@ public class PedidoActivity extends BaseActivity {
         settingBar();
 
         etObs = findViewById(R.id.et_pedido_obs);
-        etCelCliente = findViewById(R.id.et_pedido_cel);
+        etMesa = findViewById(R.id.et_pedido_mesa);
         etNomeCliente = findViewById(R.id.et_pedido_cliente);
         etValorTotal = findViewById(R.id.et_pedido_Vtotal);
         nrPedido = findViewById(R.id.tvNroPedido);
-        sms = findViewById(R.id.cbSMS);
-        pago = findViewById(R.id.cbPago);
+
         viagem = findViewById(R.id.cbViagem);
 
         //setting buttons
-       // btAddLanche = findViewById(R.id.bt_AddLanche);
+        btLerQrcode = findViewById(R.id.btLerQrcode);
         btFinalizarPedido = findViewById(R.id.bt_pedido_finalizar);
 
         //checa se usuario está conectado no mesmo wifi do estabelecimento
         //todo get the SSID from a config or database
         if (isConnectedTo(nomeWifiAtual, PedidoActivity.this)) {
 
-            Log.e("CHECANDO WIFI", "onCreate: "+ currentConnectedSSID );
+            Log.e("CHECANDO WIFI", "onCreate: " + currentConnectedSSID);
 
-        }else {
+        } else {
 
-            Toast.makeText(this,"Pedidos? Solicite a senha do WIFI/local...",Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Pedidos? Solicite a senha do WIFI/local...", Toast.LENGTH_LONG).show();
             //btAddLanche.setVisibility(View.GONE);
             btFinalizarPedido.setVisibility(View.GONE);
         }
         time = Calendar.getInstance();
+        sdf = new SimpleDateFormat(myTime);
         nroPedido = "";
 
         nroPedido = getNroPedido();
         sdf = new SimpleDateFormat(myTime);
-
+        sdfData = new SimpleDateFormat(myFormat);
+        time.set(Calendar.HOUR_OF_DAY, 24);
         //double totValue = (myAdapter.getTotalPedido());
         String tot = f.format(totalPedido);
         etValorTotal.setText(tot);
 
+        setNroMesa();
 
         //setting floating button
         fab = findViewById(R.id.fab_plus_lanche);
@@ -116,22 +122,14 @@ public class PedidoActivity extends BaseActivity {
         myPedido = new Pedido();
         list.setAdapter(myAdapter);
 
-
-
-
-        //adding listener to buttons
-
-//        btAddLanche.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Log.e("+lanche", "clicked");
-//                //save name, cel and remarks on static variables
-//                saveDataPedido();
-//
-//                onBackPressed();
-//
-//            }
-//        });
+        btLerQrcode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(getApplicationContext(), ScanQrCodeActivity.class);
+                startActivityForResult(i, 13);
+                setNroMesa();
+            }
+        });
 
         btFinalizarPedido.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -139,13 +137,13 @@ public class PedidoActivity extends BaseActivity {
 
                 itensList = list.getChildCount();//get size of list
 
-                if(itensList>0 && validate()){
+                if ((itensList > 0) && (validate())) {
                     saveDataPedido();
-                    myRef.child("pedidos").push().setValue(pedidoList);
+
                     pedidoList.clear();
                     onBackPressed();
-                }else {
-                    onBackPressed();
+                } else {
+                    return;
                 }
 
 
@@ -155,14 +153,21 @@ public class PedidoActivity extends BaseActivity {
 
     }
 
+    public void setNroMesa() {
+
+        if (mesaHasUser) {//nroMesa > 0
+            btLerQrcode.setVisibility(View.GONE);
+            etMesa.setText(String.valueOf(nroMesa));
+            etNomeCliente.setText(userNome.toUpperCase());
+        }
+    }
+
     public String getNroPedido() {
 
         try {
 
-            myRef.child("pedidos");
             //getting itemCount
-
-            myRef.addValueEventListener(new ValueEventListener() {
+            myRef.child("pedidos").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     itemCount = dataSnapshot.getChildrenCount();
@@ -189,45 +194,72 @@ public class PedidoActivity extends BaseActivity {
 
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == 13) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                setNroMesa();
+            }
+        }
+    }
+
     public void saveDataPedido() {
 
 
+        myAdapter.notifyDataSetChanged();
+        obs = etObs.getText().toString().toUpperCase();
+        nomeCliente = etNomeCliente.getText().toString().toUpperCase();
+        celCliente = etMesa.getText().toString();
+        Date hora = time.getTime();
+        String horaPedido = sdf.format(hora);
+        for (int x = 0; x < itensList; x++) {
 
-            obs = etObs.getText().toString().toUpperCase();
-            nomeCliente = etNomeCliente.getText().toString().toUpperCase();
-            celCliente = etCelCliente.getText().toString();
-            Date hora = time.getTime();
-            String horaPedido = sdf.format(hora);
-            meuPedido.setObs(obs);
-            meuPedido.setNomeCliente(nomeCliente);
-            meuPedido.setCelCliente(celCliente);
+            myPedido.setQdadeProduto(pedidoList.get(x).getQdadeProduto());
+            myPedido.setDescriProduto(pedidoList.get(x).getDescriProduto());
+            myPedido.setNomeProduto(pedidoList.get(x).getNomeProduto());
+            myPedido.setValorPedido(pedidoList.get(x).getValorPedido());
+            myPedido.setObs(obs);
+            myPedido.setEntregue(false);
+            myPedido.setNomeCliente(nomeCliente);
+            //meuPedido.setCelCliente(celCliente);
+            myPedido.setNroMesa(nroMesa);
+            myPedido.setViagem(viagem.isChecked());
+            myPedido.setStatus("aberto");
+            myPedido.setHoraPedido(horaPedido);
+            Date dataHj = myCalendar.getTime();
+            String dataPedido = sdfData.format(dataHj);
+            myPedido.setDataPedido(dataPedido);
+            myPedido.setNroPedido(nroPedido);
+            myPedido.setUserId(userID);
 
-            meuPedido.setViagem(viagem.isChecked());
-            meuPedido.setStatus("ATIVO");
-            meuPedido.setHoraPedido(horaPedido);
-            //myPedido.setDataPedido(myCalendar.getTime().toString());
-            meuPedido.setNroPedido(nroPedido);
-            for (int x=0;x<itensList;x++){
-                pedidoList.set(x, meuPedido);
-
-
-
+            pedidoList.set(x,myPedido);
+            myRef.child("pedidos").child(nomeCliente).push().setValue(myPedido);
         }
-
 
     }
 
-    private boolean validate(){
+    public void getTotalPedido(Context context) {
+
+        String tot = f.format(totalPedido);
+        etValorTotal.setText(tot);
+
+    }
+
+    private boolean validate() {
 
         boolean validado = false;
 
-        if(etNomeCliente.getText().equals("")){
+        String nome = etNomeCliente.getText().toString();
 
-            Toast.makeText(getApplicationContext(),"Nome do cliente?? ",Toast.LENGTH_SHORT).show();
+        if (nome.equals("")) {
+            etNomeCliente.setError(getString(R.string.obrigatorio));
+            //Toast.makeText(getApplicationContext(), "Nome do cliente?? ", Toast.LENGTH_SHORT).show();
             return validado;
 
-        }else{
-
+        } else {
+            etNomeCliente.setError(null);
             validado = true;
         }
 
@@ -237,8 +269,6 @@ public class PedidoActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
-        // saveData();
-        Log.e("OnBack", "saved");
         super.onBackPressed();
     }
 

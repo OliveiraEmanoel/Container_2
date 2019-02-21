@@ -11,13 +11,14 @@ public class Produtos {
     boolean isActive;
     String tipo;
     int favorito;
+    double custo;
 
 
     public Produtos() {
     }
 
     public Produtos(String nome, double price, String description, String fotoPath, String dataIn, String codigo,
-                    boolean isActive, String tipo, int favorito) {
+                    boolean isActive, String tipo, int favorito, double custo) {
         this.nome = nome;
         this.price = price;
         this.description = description;
@@ -27,6 +28,7 @@ public class Produtos {
         this.isActive = isActive;
         this.tipo = tipo;
         this.favorito = favorito;
+        this.custo = custo;
     }
 
     public String getNome() {
@@ -99,5 +101,13 @@ public class Produtos {
 
     public void setFavorito(int favorito) {
         this.favorito = favorito;
+    }
+
+    public double getCusto() {
+        return custo;
+    }
+
+    public void setCusto(double custo) {
+        this.custo = custo;
     }
 }

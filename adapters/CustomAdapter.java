@@ -10,17 +10,20 @@ import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 import br.com.emanoel.oliveira.container.R;
+import br.com.emanoel.oliveira.container.activities.BaseActivity;
 import br.com.emanoel.oliveira.container.models.Pedido;
 
 import static br.com.emanoel.oliveira.container.activities.BaseActivity.totalPedido;
 
 public class CustomAdapter extends ArrayAdapter<Pedido> implements View.OnClickListener{
- 
-    private List<Pedido> pedido;//fiz mudança aqui ...dataset e private 18/01
+    BaseActivity baseActivity;
+    List<Pedido> pedido = baseActivity.getPedido();
 
+    public DecimalFormat f = new DecimalFormat("R$ 0.00");
     Context mContext;
     int grupoColor;
     RelativeLayout relativeLayout;
@@ -32,6 +35,7 @@ public class CustomAdapter extends ArrayAdapter<Pedido> implements View.OnClickL
         TextView txtName;
         TextView txtQdade;
         CheckBox cbDelete;
+        TextView tvValor;
 
     }
 
@@ -50,6 +54,7 @@ public class CustomAdapter extends ArrayAdapter<Pedido> implements View.OnClickL
         Object object= getItem(position);
         Pedido dataModel=(Pedido)object;
 
+
       }
  
     private int lastPosition = -1;
@@ -58,6 +63,7 @@ public class CustomAdapter extends ArrayAdapter<Pedido> implements View.OnClickL
     public View getView(final int position, View convertView, ViewGroup parent) {
         // Get the data item for this position
         Pedido dataModel = getItem(position);
+
         // Check if an existing view is being reused, otherwise inflate the view
         final ViewHolder viewHolder; // view lookup cache stored in tag
 
@@ -74,6 +80,7 @@ public class CustomAdapter extends ArrayAdapter<Pedido> implements View.OnClickL
             viewHolder.txtName = (TextView) convertView.findViewById(R.id.tvNomeLV);
             viewHolder.txtQdade = (TextView) convertView.findViewById(R.id.tvQdadeLV);
             viewHolder.cbDelete = convertView.findViewById(R.id.cbExcluirLV);
+            viewHolder.tvValor = convertView.findViewById(R.id.tvValorItemPedido);
 
 
  
@@ -91,9 +98,13 @@ public class CustomAdapter extends ArrayAdapter<Pedido> implements View.OnClickL
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 
                 if(isChecked) {
+                    String tot;
+                    totalPedido = totalPedido - pedido.get(position).getValorPedido();
                     pedido.remove(position);
                     notifyDataSetChanged();//to refresh listView
                     viewHolder.cbDelete.setChecked(false);
+
+
                 }
             }
         });
@@ -101,6 +112,9 @@ public class CustomAdapter extends ArrayAdapter<Pedido> implements View.OnClickL
 
         viewHolder.txtName.setText(dataModel.getNomeProduto());
         viewHolder.txtQdade.setText(String.valueOf(dataModel.getQdadeProduto()));
+        String valorItem = String.valueOf(dataModel.getValorPedido());
+
+        viewHolder.tvValor.setText(f.format(pedido.get(position).getValorPedido()));
 
         return convertView;
     }

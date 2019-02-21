@@ -40,7 +40,7 @@ public class EstoqueFragment extends Fragment {
 
     Spinner spProdutos;
     Spinner spTipo;
-    BaseActivity baseActivity;
+    private BaseActivity baseActivity;
     Button btSalvar, btExcluir, btAtualizar, btPlus, btMinus;
     EditText etQdade, etUser, etData, etTotal;
     boolean ativo = true;

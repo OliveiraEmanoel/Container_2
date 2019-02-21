@@ -4,8 +4,6 @@ import android.app.Application;
 import android.view.View;
 
 import com.google.firebase.database.FirebaseDatabase;
-import com.squareup.picasso.LruCache;
-import com.squareup.picasso.Picasso;
 
 /**
  * Created by USUARIO on 10/09/2017.

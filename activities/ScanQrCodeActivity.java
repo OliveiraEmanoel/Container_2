@@ -98,7 +98,10 @@ public class ScanQrCodeActivity extends BaseActivity implements ZXingScannerView
                 mesaHasUser = true;
                 Intent intent = new Intent();
                 intent.putExtra("KEY_QR_CODE", p0.getText());
+                intent.putExtra("mesa",mesa.getNumeroMesa());
                 setResult(RESULT_OK, intent);
+                onBackPressed();
+                finish();
             } catch (Exception e) {
                 Toast.makeText(getApplicationContext(), "Erro lendo QrCode" + e.toString(), Toast.LENGTH_SHORT).show();
                 onBackPressed();

@@ -27,7 +27,7 @@ public class Pedido implements Serializable {
     public Pedido() {
     }
 
-    public Pedido(String nroPedido, String nomeProduto, String descriProduto, String obs, int qdadeProduto, double valorPedido, boolean viagem, boolean entregue, int nroMesa, String nomeCliente,
+    public  Pedido(String nroPedido, String nomeProduto, String descriProduto, String obs, int qdadeProduto, double valorPedido, boolean viagem, boolean entregue, int nroMesa, String nomeCliente,
                   String celCliente, String dataPedido, String horaPedido, String userId, String status) {
         this.nroPedido = nroPedido;
         this.nomeProduto = nomeProduto;
